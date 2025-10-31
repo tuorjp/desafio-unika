@@ -18,11 +18,7 @@ public class ControllerExceptionHandler {
         var code = HttpStatus.NOT_FOUND.value();
         var message = e.getMessage();
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("code", code);
-        body.put("message", message);
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(montarBody(code, message));
     }
 
     @ExceptionHandler(CPFCNPJDuplicadoException.class)
@@ -30,11 +26,7 @@ public class ControllerExceptionHandler {
         var code = HttpStatus.CONFLICT.value();
         var message = e.getMessage();
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("code", code);
-        body.put("message", message);
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(montarBody(code, message));
     }
 
     @ExceptionHandler(EmailDuplicadoException.class)
@@ -42,10 +34,15 @@ public class ControllerExceptionHandler {
         var code = HttpStatus.CONFLICT.value();
         var message = e.getMessage();
 
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(montarBody(code, message));
+    }
+
+    private Map<String, Object> montarBody(Object code, String message) {
         Map<String, Object> body = new HashMap<>();
-        body.put("code", code);
+        body.put("error", true);
+        body.put("status", code);
         body.put("message", message);
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+        return body;
     }
 }
