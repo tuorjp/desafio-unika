@@ -2,7 +2,6 @@ package jp.tuor.backend.controller;
 
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.dto.ClienteDTO;
-import jp.tuor.backend.model.dto.EditClienteDTO;
 import jp.tuor.backend.service.ClienteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,7 +39,7 @@ public class ClienteController {
     }
 
     @PutMapping("/edit")
-    public ResponseEntity<Object> updateCliente(@RequestBody EditClienteDTO editClienteDTO) {
+    public ResponseEntity<Object> updateCliente(@RequestBody ClienteDTO editClienteDTO) {
         this.clienteService.editarCliente(editClienteDTO);
 
         return ResponseEntity

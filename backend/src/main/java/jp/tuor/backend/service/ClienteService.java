@@ -3,8 +3,6 @@ package jp.tuor.backend.service;
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.Endereco;
 import jp.tuor.backend.model.dto.ClienteDTO;
-import jp.tuor.backend.model.dto.EditClienteDTO;
-import jp.tuor.backend.model.dto.EditEnderecoDTO;
 import jp.tuor.backend.model.dto.EnderecoDTO;
 import jp.tuor.backend.model.enums.TipoOperacao;
 import jp.tuor.backend.model.enums.TipoPessoa;
@@ -17,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -31,7 +30,7 @@ public class ClienteService {
         this.clienteRepository.save(cliente);
     }
 
-    public void editarCliente(EditClienteDTO clienteDTO) {
+    public void editarCliente(ClienteDTO clienteDTO) {
         Optional<Cliente> clienteSalvo = this.clienteRepository.findById(clienteDTO.getId());
         if (clienteSalvo.isPresent()) {
             Cliente cliente = clienteSalvo.get();
@@ -108,60 +107,47 @@ public class ClienteService {
         }
     }
 
-    private void montarEnderecosDoCliente(Cliente cliente, List<? extends EnderecoDTO> enderecosDTO) {
+    private void montarEnderecosDoCliente(Cliente cliente, List<EnderecoDTO> enderecosDTO) {
+        //cliente criado sem nenhum endereço
         if (enderecosDTO == null) {
-            if(cliente.getEnderecos() != null) {
-                cliente.getEnderecos().clear();
-            } else {
-                cliente.setEnderecos(new ArrayList<>());
-            }
             return;
         }
 
-        //pega os endereços existentes do cliente caso eles existam, caso seja uma requisição PUT
-        List<Endereco> enderecosAtuais = new ArrayList<>();
-        List<Endereco> enderecosAtualizados = new ArrayList<>();
-
-        if(cliente.getId() != null) {
-            enderecosAtuais = this.enderecoService.getEnderecosByCliente(cliente);
+        //criando lista vazia caso não haja endereço cadastrado
+        if(cliente.getEnderecos() == null) {
+            cliente.setEnderecos(new ArrayList<>());
         }
 
-        for(EnderecoDTO dto : enderecosDTO) {
-            if(dto instanceof EditEnderecoDTO && ((EditEnderecoDTO) dto).getId() != null) {
-                Long id = ((EditEnderecoDTO) dto).getId();
-                Endereco endereco = enderecosAtuais
-                        .stream()
-                        .filter(e -> e.getId().equals(id))
-                        .findFirst()
-                        .orElse(null);
+        //pega os endereços existentes do cliente caso eles existam, caso seja uma requisição PUT
+        List<Endereco> enderecosAtuais = cliente.getEnderecos();
 
-                if(endereco != null) {
-                    preencherEnderecoComDTO(endereco, dto);
-                    enderecosAtualizados.add(endereco);
-                    enderecosAtuais.remove(endereco);
-                } else {
-                    throw new EnderecoNaoEncontradoException("Endereço não encontrado.");
-                }
+        //atualizando ou cadastrando novos endereços na lista de endereços do cliente
+        for(EnderecoDTO dto: enderecosDTO) {
+            if(dto.getId() != null) {
+                Endereco existente = enderecosAtuais
+                  .stream()
+                  .filter(e -> e.getId().equals(dto.getId()))
+                  .findFirst()
+                  .orElseThrow(() -> new EnderecoNaoEncontradoException("Endereço não encontrado: " + dto.getId()));
 
+                preencherEnderecoComDTO(existente, dto);
             } else {
+                //adiciona novo endereço
                 Endereco novoEndereco = new Endereco();
                 preencherEnderecoComDTO(novoEndereco, dto);
                 novoEndereco.setCliente(cliente);
-
-                enderecosAtualizados.add(novoEndereco);
+                enderecosAtuais.add(novoEndereco);
             }
         }
 
-        List<Endereco> listaGerenciada = cliente.getEnderecos();
-
-        if(listaGerenciada == null) {
-            listaGerenciada = new ArrayList<>();
-        }
-        //avisa o hibernate para remover os órfãos
-        listaGerenciada.clear();
-        listaGerenciada.addAll(enderecosAtualizados);
-
-        cliente.setEnderecos(listaGerenciada);
+        //removendo endereços que não vieram do front
+        enderecosAtuais.removeIf(
+          e -> e.getId() != null &&
+            enderecosDTO.stream()
+              .map(EnderecoDTO::getId)
+              .filter(Objects::nonNull)
+              .noneMatch(id -> id.equals(e.getId()))
+        );
     }
 
     private void preencherEnderecoComDTO(Endereco endereco, EnderecoDTO dto) {
