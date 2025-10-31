@@ -3,6 +3,7 @@ package jp.tuor.backend.service;
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.Endereco;
 import jp.tuor.backend.model.dto.ClienteDTO;
+import jp.tuor.backend.model.dto.EditClienteDTO;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.repository.ClienteRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +20,18 @@ public class ClienteService {
     private final ClienteRepository clienteRepository;
 
     public void novoCliente(ClienteDTO clienteDTO) {
-        Cliente cliente = this.criarClienteComDadosDTO(clienteDTO);
+        Cliente cliente = new Cliente();
+        preencheClienteObjComClienteDTO(cliente, clienteDTO);
         this.clienteRepository.save(cliente);
     }
 
-    public void editarCliente(ClienteDTO clienteDTO) {
+    public void editarCliente(EditClienteDTO clienteDTO) {
         Optional<Cliente> clienteSalvo = this.clienteRepository.findById(clienteDTO.getId());
         if(clienteSalvo.isPresent()) {
-            Cliente clienteAtualizado = atualizarClienteComDadosDTO(clienteDTO, clienteSalvo.get());
-            this.clienteRepository.save(clienteAtualizado);
+            Cliente cliente = clienteSalvo.get();
+            limpaCamposDTOPorTipoPessoa(cliente, clienteDTO);
+            preencheClienteObjComClienteDTO(cliente, clienteDTO);
+            this.clienteRepository.save(cliente);
         }
     }
 
@@ -60,10 +64,8 @@ public class ClienteService {
         return cliente.orElse(null);
     }
 
-    public Cliente criarClienteComDadosDTO(ClienteDTO clienteDTO) {
-        Cliente cliente = new Cliente();
+    private void preencheClienteObjComClienteDTO(Cliente cliente, ClienteDTO clienteDTO) {
         cliente.setTipoPessoa(clienteDTO.getTipoPessoa());
-
         if (clienteDTO.getTipoPessoa().equals(TipoPessoa.FISICA)) {
             cliente.setCpf(clienteDTO.getCpf());
             cliente.setNome(clienteDTO.getNome());
@@ -79,38 +81,20 @@ public class ClienteService {
         cliente.setEmail(clienteDTO.getEmail());
         cliente.setAtivo(true);
         cliente.setEnderecos(montarEnderecosDoCliente(cliente, clienteDTO.getEnderecos()));
-        return cliente;
     }
 
-    public Cliente atualizarClienteComDadosDTO(ClienteDTO clienteDTO, Cliente cliente) {
+    private void limpaCamposDTOPorTipoPessoa(Cliente cliente, ClienteDTO clienteDTO) {
         if (clienteDTO.getTipoPessoa().equals(TipoPessoa.FISICA)) {
-            cliente.setCpf(clienteDTO.getCpf());
-            cliente.setNome(clienteDTO.getNome());
-            cliente.setRg(clienteDTO.getRg());
-            cliente.setDataNascimento(clienteDTO.getDataNascimento());
-
             cliente.setCnpj("");
             cliente.setRazaoSocial("");
             cliente.setInscricaoEstadual("");
             cliente.setDataCriacao(null);
         } else {
-            cliente.setCnpj(clienteDTO.getCnpj());
-            cliente.setRazaoSocial(clienteDTO.getRazaoSocial());
-            cliente.setInscricaoEstadual(clienteDTO.getInscricaoEstadual());
-            cliente.setDataCriacao(clienteDTO.getDataCriacao());
-
             cliente.setCpf("");
             cliente.setNome("");
             cliente.setRg("");
             cliente.setDataNascimento(null);
         }
-
-        cliente.setEmail(clienteDTO.getEmail());
-        cliente.setAtivo(cliente.isAtivo());
-
-        cliente.setEnderecos(montarEnderecosDoCliente(cliente, clienteDTO.getEnderecos()));
-
-        return cliente;
     }
 
     private List<Endereco> montarEnderecosDoCliente(Cliente cliente, List<Endereco> enderecos) {
