@@ -1,5 +1,6 @@
 package jp.tuor.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import lombok.AllArgsConstructor;
@@ -53,6 +54,11 @@ public class Cliente {
     @Column(nullable = false)
     private boolean ativo;
 
-    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    @OneToMany(
+            mappedBy = "cliente",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<Endereco> enderecos;
 }
