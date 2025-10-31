@@ -11,7 +11,6 @@ import java.util.List;
 @Getter
 @Setter
 public class ClienteDTO {
-    private Long id;
     private TipoPessoa tipoPessoa;
     private String cpf;
     private String cnpj;
