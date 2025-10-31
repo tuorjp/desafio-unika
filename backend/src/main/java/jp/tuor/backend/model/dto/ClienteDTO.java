@@ -1,6 +1,5 @@
 package jp.tuor.backend.model.dto;
 
-import jp.tuor.backend.model.Endereco;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,5 +21,5 @@ public class ClienteDTO {
     private String inscricaoEstadual;
     private String email;
     private boolean ativo;
-    private List<Endereco> enderecos;
+    private List<EnderecoDTO> enderecos;
 }

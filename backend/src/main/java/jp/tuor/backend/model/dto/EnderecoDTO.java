@@ -10,10 +10,8 @@ public class EnderecoDTO {
     private String numero;
     private String cep;
     private String bairro;
-    private String telefone;
     private String cidade;
     private String estado;
     private boolean enderecoPrincipal;
     private String complemento;
-    private Long clienteId;
 }
