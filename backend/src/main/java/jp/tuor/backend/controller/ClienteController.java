@@ -4,13 +4,20 @@ import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.dto.ClienteDTO;
 import jp.tuor.backend.service.ClienteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +27,23 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ClienteController {
     private final ClienteService clienteService;
+
+    @GetMapping("/export-excel")
+    public ResponseEntity<InputStreamResource> exportClientsExcel() throws IOException {
+        ByteArrayInputStream bais = clienteService.gerarRelatorioExcel();
+
+        String data = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+        String filename = "relatorio_clientes_" + data + ".xslx";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(bais));
+    }
 
     @GetMapping("list-all")
     public ResponseEntity<List<Cliente>> listAll() {

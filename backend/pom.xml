@@ -91,6 +91,7 @@
             <version>5.4.1</version>
         </dependency>
 
+        <!-- SWAGGER -->
         <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui -->
         <dependency>
             <groupId>org.springdoc</groupId>

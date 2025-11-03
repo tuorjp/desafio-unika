@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,7 +41,15 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(CampoInvalidoException.class)
     public ResponseEntity<Map<String, Object>> handleCampoInvalidoException(CampoInvalidoException e) {
-        var code = HttpStatus.BAD_REQUEST;
+        var code = HttpStatus.BAD_REQUEST.value();
+        var message = e.getMessage();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(montarBody(code, message));
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<Map<String, Object>> handleIOException(IOException e) {
+        var code = HttpStatus.INTERNAL_SERVER_ERROR.value();
         var message = e.getMessage();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(montarBody(code, message));

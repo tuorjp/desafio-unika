@@ -17,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -27,6 +29,12 @@ import java.util.Optional;
 public class ClienteService {
     private final ClienteRepository clienteRepository;
     private final ValidadorUtil validadorUtil;
+    private final ClienteExcelExportService clienteExcelExportService;
+
+    public ByteArrayInputStream gerarRelatorioExcel() throws IOException {
+        List<Cliente> clientes = this.clienteRepository.findAll();
+        return clienteExcelExportService.gerarPlanilhaClientes(clientes);
+    }
 
     public void novoCliente(ClienteDTO clienteDTO) {
         validarClienteDTO(clienteDTO, TipoOperacao.CRIACAO);
