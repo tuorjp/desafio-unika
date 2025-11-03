@@ -241,9 +241,49 @@ public class ClienteService {
             }
         }
 
+        List<EnderecoDTO> enderecos = clienteDTO.getEnderecos();
+
+        if(enderecos != null && !enderecos.isEmpty()) {
+            long countEnderecoPrincipal = enderecos.stream().filter(EnderecoDTO::isEnderecoPrincipal).count();
+
+            if(countEnderecoPrincipal == 0) {
+                erros.add("É obrigatório ao menos um endereço principal.");
+            } else if(countEnderecoPrincipal > 1) {
+                erros.add("Apenas um endereço pode ser marcado como principal");
+            }
+
+            for (int i = 0; i < enderecos.size(); i++) {
+                EnderecoDTO endereco = enderecos.get(i);
+                Class<?> classeEndereco = endereco.getClass();
+                String prefixo = "Endereço [" + (i + 1) + "]: ";
+
+                for (Field campoEndereco: classeEndereco.getDeclaredFields()) {
+                    if(campoEndereco.isAnnotationPresent(Obrigatorio.class)) {
+                        campoEndereco.setAccessible(true);
+
+                        if(campoEndereco.getName().equals("enderecoPrincipal")) {
+                            continue;
+                        }
+
+                        try {
+                            Object valorCampo = campoEndereco.get(endereco);
+
+                            if(valorCampo == null) {
+                                erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' é obrigatório.");
+                            } else if(valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
+                                erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' não pode estar em branco.");
+                            }
+                        } catch (IllegalAccessException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
+                }
+            }
+        }
+
         //se a lista de erros não estiver vazia, lança a exceção com todas as mensagens
         if (!erros.isEmpty()) {
-            throw new CampoInvalidoException(String.join("\n", erros));
+            throw new CampoInvalidoException(String.join("; ", erros));
         }
     }
 }
