@@ -6,6 +6,7 @@ import jp.tuor.backend.model.enums.TipoOperacao;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.model.mapper.ClienteMapper;
 import jp.tuor.backend.repository.ClienteRepository;
+import jp.tuor.backend.repository.specification.ClienteSpecification;
 import jp.tuor.backend.service.exceptions.CPFCNPJDuplicadoException;
 import jp.tuor.backend.service.exceptions.CampoInvalidoException;
 import jp.tuor.backend.service.exceptions.ClienteNaoEncontradoException;
@@ -15,6 +16,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,13 +34,6 @@ public class ClienteService {
     private final ClienteMapper clienteMapper;
     private final ClienteExcelExportService clienteExcelExportService;
     private final ClienteExcelImportService excelImportService;
-
-    private String getValorCelula(Cell cell, DataFormatter formatter) {
-        if (cell == null) {
-            return "";
-        }
-        return formatter.formatCellValue(cell);
-    }
 
     public ByteArrayInputStream gerarRelatorioExcel() throws IOException {
         List<Cliente> clientes = this.clienteRepository.findAll();
@@ -93,6 +88,11 @@ public class ClienteService {
 
     public Page<Cliente> listarClientesPaginado(Pageable pageable) {
         return this.clienteRepository.findAll(pageable);
+    }
+
+    public Page<Cliente> buscarClientesFiltrados(String nome, String cpfCnpj, String cidade, Pageable pageable) {
+        Specification<Cliente> spec = ClienteSpecification.comFiltros(nome, cpfCnpj, cidade);
+        return clienteRepository.findAll(spec, pageable);
     }
 
     public Cliente buscaClientePorId(Long id) {
