@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -19,6 +20,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ClienteController {
     private final ClienteService clienteService;
+
+    @GetMapping("list-all")
+    public ResponseEntity<List<Cliente>> listAll() {
+        List<Cliente> clientes = clienteService.listarClientes();
+
+        return ResponseEntity.ok(clientes);
+    }
 
     @GetMapping("/list-page")
     public Page<Cliente> listPaged(
