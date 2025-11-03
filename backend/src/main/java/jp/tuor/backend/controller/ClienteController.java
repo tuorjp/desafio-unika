@@ -3,6 +3,7 @@ package jp.tuor.backend.controller;
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.dto.ClienteDTO;
 import jp.tuor.backend.service.ClienteService;
+import jp.tuor.backend.service.exceptions.CampoInvalidoException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -70,6 +72,26 @@ public class ClienteController {
                 .body(montarBody(HttpStatus.CREATED.value(), "Usuário criado com sucesso."));
     }
 
+    @PostMapping("/import/excel")
+    public ResponseEntity<?> importarClientesExcel(@RequestParam("file")MultipartFile file) {
+       if(file.isEmpty()) {
+           throw new CampoInvalidoException("Por favor envie um arquivo .xlsx");
+       }
+
+       try {
+           Map<String, Object> resultado = clienteService.importarClientesExcel(file);
+
+           if(resultado.containsKey("erros") && !((List<?>) resultado.get("erros")).isEmpty()){
+                return ResponseEntity.badRequest().body(resultado);
+           }
+
+            return ResponseEntity.ok(resultado);
+       } catch (Exception e) {
+           System.out.println(e.getMessage());
+           return ResponseEntity.status(500).body("Erro inesperado ao gerar o arquivo");
+       }
+    }
+
     @PutMapping("/edit")
     public ResponseEntity<Object> updateCliente(@RequestBody ClienteDTO editClienteDTO) {
         this.clienteService.editarCliente(editClienteDTO);
@@ -79,6 +101,7 @@ public class ClienteController {
                 .body(montarBody(HttpStatus.OK.value(), "Usuário editado com sucesso."));
     }
 
+    //método auxiliar que monta bodies genéricos
     private Map<String, Object> montarBody(Object code, String message) {
         Map<String, Object> body = new HashMap<>();
         body.put("error", false);
