@@ -19,6 +19,11 @@ public class ValidadorUtil {
         TipoPessoa tipoPessoa = clienteDTO.getTipoPessoa();
         Class<?> classe = clienteDTO.getClass();
 
+        if (tipoPessoa == null) {
+            erros.add("O campo 'tipoPessoa' é obrigatório.");
+            throw new CampoInvalidoException(String.join("\n", erros));
+        }
+
         List<String> camposFisica = Arrays.asList("cpf", "nome", "rg", "dataNascimento");
         List<String> camposJuridica = Arrays.asList("cnpj", "razaoSocial", "inscricaoEstadual", "dataCriacao");
 

@@ -8,6 +8,7 @@ import jp.tuor.backend.model.enums.TipoOperacao;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.repository.ClienteRepository;
 import jp.tuor.backend.service.exceptions.CPFCNPJDuplicadoException;
+import jp.tuor.backend.service.exceptions.ClienteNaoEncontradoException;
 import jp.tuor.backend.service.exceptions.EnderecoNaoEncontradoException;
 import jp.tuor.backend.utils.ValidadorUtil;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,8 @@ public class ClienteService {
             limpaCamposNaoUsados(cliente, clienteDTO);
             preencheClienteObjComClienteDTO(cliente, clienteDTO, TipoOperacao.EDICAO);
             this.clienteRepository.save(cliente);
+        } else {
+            throw new ClienteNaoEncontradoException("Cliente não encontrado: " + clienteDTO.getId());
         }
     }
 
