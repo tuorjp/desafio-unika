@@ -1,0 +1,103 @@
+package jp.tuor.backend.model.mapper;
+
+import jp.tuor.backend.model.Cliente;
+import jp.tuor.backend.model.Endereco;
+import jp.tuor.backend.model.dto.ClienteDTO;
+import jp.tuor.backend.model.dto.EnderecoDTO;
+import jp.tuor.backend.model.enums.TipoOperacao;
+import jp.tuor.backend.model.enums.TipoPessoa;
+import jp.tuor.backend.service.exceptions.EnderecoNaoEncontradoException;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+@Component
+public class ClienteMapper {
+    public void preencheClienteObjComClienteDTO(Cliente cliente, ClienteDTO clienteDTO, TipoOperacao tipoOperacao) {
+        cliente.setTipoPessoa(clienteDTO.getTipoPessoa());
+        if (clienteDTO.getTipoPessoa().equals(TipoPessoa.FISICA)) {
+            cliente.setCpf(clienteDTO.getCpf());
+            cliente.setNome(clienteDTO.getNome());
+            cliente.setRg(clienteDTO.getRg());
+            cliente.setDataNascimento(clienteDTO.getDataNascimento());
+        } else {
+            cliente.setCnpj(clienteDTO.getCnpj());
+            cliente.setRazaoSocial(clienteDTO.getRazaoSocial());
+            cliente.setInscricaoEstadual(clienteDTO.getInscricaoEstadual());
+            cliente.setDataCriacao(clienteDTO.getDataCriacao());
+        }
+
+        if (tipoOperacao.equals(TipoOperacao.CRIACAO)) {
+            cliente.setAtivo(true);
+        } else {
+            cliente.setAtivo(clienteDTO.isAtivo());
+        }
+
+        cliente.setEmail(clienteDTO.getEmail());
+        montarEnderecosDoCliente(cliente, clienteDTO.getEnderecos());
+    }
+
+    public void limpaCamposNaoUsados(Cliente cliente, ClienteDTO clienteDTO) {
+        if (clienteDTO.getTipoPessoa().equals(TipoPessoa.FISICA)) {
+            cliente.setCnpj("");
+            cliente.setRazaoSocial("");
+            cliente.setInscricaoEstadual("");
+            cliente.setDataCriacao(null);
+        } else {
+            cliente.setCpf("");
+            cliente.setNome("");
+            cliente.setRg("");
+            cliente.setDataNascimento(null);
+        }
+    }
+
+    public void montarEnderecosDoCliente(Cliente cliente, List<EnderecoDTO> enderecosDTO) {
+        if (enderecosDTO == null) {
+            return;
+        }
+
+        if(cliente.getEnderecos() == null) {
+            cliente.setEnderecos(new ArrayList<>());
+        }
+
+        List<Endereco> enderecosAtuais = cliente.getEnderecos();
+
+        for(EnderecoDTO dto: enderecosDTO) {
+            if(dto.getId() != null) {
+                Endereco existente = enderecosAtuais
+                        .stream()
+                        .filter(e -> e.getId().equals(dto.getId()))
+                        .findFirst()
+                        .orElseThrow(() -> new EnderecoNaoEncontradoException("Endereço não encontrado: " + dto.getId()));
+
+                preencherEnderecoComDTO(existente, dto);
+            } else {
+                Endereco novoEndereco = new Endereco();
+                preencherEnderecoComDTO(novoEndereco, dto);
+                novoEndereco.setCliente(cliente);
+                enderecosAtuais.add(novoEndereco);
+            }
+        }
+
+        enderecosAtuais.removeIf(
+                e -> e.getId() != null &&
+                        enderecosDTO.stream()
+                                .map(EnderecoDTO::getId)
+                                .filter(Objects::nonNull)
+                                .noneMatch(id -> id.equals(e.getId()))
+        );
+    }
+
+    public void preencherEnderecoComDTO(Endereco endereco, EnderecoDTO dto) {
+        endereco.setLogradouro(dto.getLogradouro());
+        endereco.setNumero(dto.getNumero());
+        endereco.setCep(dto.getCep());
+        endereco.setBairro(dto.getBairro());
+        endereco.setCidade(dto.getCidade());
+        endereco.setEstado(dto.getEstado());
+        endereco.setEnderecoPrincipal(dto.isEnderecoPrincipal());
+        endereco.setComplemento(dto.getComplemento());
+    }
+}
