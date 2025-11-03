@@ -1,6 +1,7 @@
 package jp.tuor.backend.controller.exceptions;
 
 import jp.tuor.backend.service.exceptions.CPFCNPJDuplicadoException;
+import jp.tuor.backend.service.exceptions.CampoInvalidoException;
 import jp.tuor.backend.service.exceptions.ClienteNaoEncontradoException;
 import jp.tuor.backend.service.exceptions.EmailDuplicadoException;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,14 @@ public class ControllerExceptionHandler {
         var message = e.getMessage();
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(montarBody(code, message));
+    }
+
+    @ExceptionHandler(CampoInvalidoException.class)
+    public ResponseEntity<Map<String, Object>> handleCampoInvalidoException(CampoInvalidoException e) {
+        var code = HttpStatus.BAD_REQUEST;
+        var message = e.getMessage();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(montarBody(code, message));
     }
 
     private Map<String, Object> montarBody(Object code, String message) {

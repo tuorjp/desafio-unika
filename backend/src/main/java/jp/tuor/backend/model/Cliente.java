@@ -24,10 +24,10 @@ public class Cliente {
     @Column(nullable = false)
     private TipoPessoa tipoPessoa;
 
-    @Column
+    @Column(unique = true)
     private String cpf;
 
-    @Column
+    @Column(unique = true)
     private String cnpj;
 
     @Column

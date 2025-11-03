@@ -7,30 +7,34 @@ import jp.tuor.backend.model.dto.EnderecoDTO;
 import jp.tuor.backend.model.enums.TipoOperacao;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.repository.ClienteRepository;
+import jp.tuor.backend.service.exceptions.CPFCNPJDuplicadoException;
+import jp.tuor.backend.service.exceptions.CampoInvalidoException;
 import jp.tuor.backend.service.exceptions.EnderecoNaoEncontradoException;
+import jp.tuor.backend.utils.annotations.Obrigatorio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.lang.reflect.Field;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class ClienteService {
     private final ClienteRepository clienteRepository;
-    private final EnderecoService enderecoService;
 
     public void novoCliente(ClienteDTO clienteDTO) {
+        validarClienteDTO(clienteDTO, TipoOperacao.CRIACAO);
+
         Cliente cliente = new Cliente();
         preencheClienteObjComClienteDTO(cliente, clienteDTO, TipoOperacao.CRIACAO);
         this.clienteRepository.save(cliente);
     }
 
     public void editarCliente(ClienteDTO clienteDTO) {
+        validarClienteDTO(clienteDTO, TipoOperacao.EDICAO);
+
         Optional<Cliente> clienteSalvo = this.clienteRepository.findById(clienteDTO.getId());
         if (clienteSalvo.isPresent()) {
             Cliente cliente = clienteSalvo.get();
@@ -159,5 +163,87 @@ public class ClienteService {
         endereco.setEstado(dto.getEstado());
         endereco.setEnderecoPrincipal(dto.isEnderecoPrincipal());
         endereco.setComplemento(dto.getComplemento());
+    }
+
+    private void validarClienteDTO(ClienteDTO clienteDTO, TipoOperacao tipoOperacao) {
+        validarCamposObrigatorios(clienteDTO);
+
+        Optional<Cliente> clienteBusca;
+
+        if (tipoOperacao.equals(TipoOperacao.CRIACAO)) {
+            if (clienteDTO.getId() != null) clienteDTO.setId(null);
+
+            if (clienteDTO.getTipoPessoa().equals(TipoPessoa.FISICA)) {
+                clienteBusca = clienteRepository.findByCpf(clienteDTO.getCpf());
+                if (clienteBusca.isPresent())
+                    throw new CPFCNPJDuplicadoException("Cliente com CPF " + clienteDTO.getCpf() + " já cadastrado.");
+            } else {
+                clienteBusca = clienteRepository.findByCnpj(clienteDTO.getCnpj());
+                if (clienteBusca.isPresent())
+                    throw new CPFCNPJDuplicadoException("Cliente com CNPJ " + clienteDTO.getCnpj() + " já cadastrado.");
+            }
+        } else if (tipoOperacao.equals(TipoOperacao.EDICAO)) {
+            if (clienteDTO.getTipoPessoa().equals(TipoPessoa.FISICA)) {
+                clienteBusca = clienteRepository.findByCpf(clienteDTO.getCpf());
+                if (clienteBusca.isPresent() && !clienteBusca.get().getId().equals(clienteDTO.getId())) {
+                    throw new CPFCNPJDuplicadoException("CPF " + clienteDTO.getCpf() + " já pertence a outro cliente.");
+                }
+            } else {
+                clienteBusca = clienteRepository.findByCnpj(clienteDTO.getCnpj());
+                if (clienteBusca.isPresent() && !clienteBusca.get().getId().equals(clienteDTO.getId())) {
+                    throw new CPFCNPJDuplicadoException("CNPJ " + clienteDTO.getCnpj() + " já pertence a outro cliente.");
+                }
+            }
+        }
+    }
+
+    private void validarCamposObrigatorios(ClienteDTO clienteDTO) {
+        List<String> erros = new ArrayList<>();
+        TipoPessoa tipoPessoa = clienteDTO.getTipoPessoa();
+        Class<?> classe = clienteDTO.getClass();
+
+        List<String> camposFisica = Arrays.asList("cpf", "nome", "rg", "dataNascimento");
+        List<String> camposJuridica = Arrays.asList("cnpj", "razaoSocial", "inscricaoEstadual", "dataCriacao");
+
+        for (Field campo : classe.getDeclaredFields()) {
+            if (campo.isAnnotationPresent(Obrigatorio.class)) {
+                campo.setAccessible(true);
+                Obrigatorio anotacao = campo.getAnnotation(Obrigatorio.class);
+                String nomeCampo = campo.getName();
+
+                try {
+                    Object valorCampo = campo.get(clienteDTO);
+                    boolean isObrigatorio = false;
+
+                    if (anotacao.dependeDeCampo().isEmpty()) {
+                        isObrigatorio = anotacao.isObrigatorio();
+                    } else if (anotacao.dependeDeCampo().equals("tipoPessoa")) {
+                        //validação condicional: depende do tipoPessoa
+                        if (tipoPessoa == TipoPessoa.FISICA && camposFisica.contains(nomeCampo)) {
+                            isObrigatorio = true;
+                        } else if (tipoPessoa == TipoPessoa.JURIDICA && camposJuridica.contains(nomeCampo)) {
+                            isObrigatorio = true;
+                        }
+                    }
+
+                    //se for obrigatório neste contexto, valida o valor
+                    if (isObrigatorio) {
+                        if (valorCampo == null) {
+                            erros.add("O campo '" + nomeCampo + "' é obrigatório.");
+                        } else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
+                            erros.add("O campo '" + nomeCampo + "' não pode estar em branco.");
+                        }
+                    }
+
+                } catch (IllegalAccessException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
+
+        //se a lista de erros não estiver vazia, lança a exceção com todas as mensagens
+        if (!erros.isEmpty()) {
+            throw new CampoInvalidoException(String.join("\n", erros));
+        }
     }
 }
