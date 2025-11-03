@@ -8,6 +8,7 @@ import jp.tuor.backend.model.enums.TipoOperacao;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.repository.ClienteRepository;
 import jp.tuor.backend.service.exceptions.CPFCNPJDuplicadoException;
+import jp.tuor.backend.service.exceptions.CampoInvalidoException;
 import jp.tuor.backend.service.exceptions.ClienteNaoEncontradoException;
 import jp.tuor.backend.service.exceptions.EnderecoNaoEncontradoException;
 import jp.tuor.backend.utils.ValidadorUtil;
@@ -172,6 +173,10 @@ public class ClienteService {
 
     private void validarClienteDTO(ClienteDTO clienteDTO, TipoOperacao tipoOperacao) {
         validadorUtil.validarCamposObrigatorios(clienteDTO);
+
+        if (tipoOperacao.equals(TipoOperacao.EDICAO) && clienteDTO.getId() == null) {
+            throw new CampoInvalidoException("O ID do cliente é obrigatório para edição.");
+        }
 
         Optional<Cliente> clienteBusca;
 
