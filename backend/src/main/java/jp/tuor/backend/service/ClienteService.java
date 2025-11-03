@@ -8,21 +8,23 @@ import jp.tuor.backend.model.enums.TipoOperacao;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.repository.ClienteRepository;
 import jp.tuor.backend.service.exceptions.CPFCNPJDuplicadoException;
-import jp.tuor.backend.service.exceptions.CampoInvalidoException;
 import jp.tuor.backend.service.exceptions.EnderecoNaoEncontradoException;
-import jp.tuor.backend.utils.annotations.Obrigatorio;
+import jp.tuor.backend.utils.ValidadorUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ClienteService {
     private final ClienteRepository clienteRepository;
+    private final ValidadorUtil validadorUtil;
 
     public void novoCliente(ClienteDTO clienteDTO) {
         validarClienteDTO(clienteDTO, TipoOperacao.CRIACAO);
@@ -166,7 +168,7 @@ public class ClienteService {
     }
 
     private void validarClienteDTO(ClienteDTO clienteDTO, TipoOperacao tipoOperacao) {
-        validarCamposObrigatorios(clienteDTO);
+        validadorUtil.validarCamposObrigatorios(clienteDTO);
 
         Optional<Cliente> clienteBusca;
 
@@ -194,96 +196,6 @@ public class ClienteService {
                     throw new CPFCNPJDuplicadoException("CNPJ " + clienteDTO.getCnpj() + " já pertence a outro cliente.");
                 }
             }
-        }
-    }
-
-    private void validarCamposObrigatorios(ClienteDTO clienteDTO) {
-        List<String> erros = new ArrayList<>();
-        TipoPessoa tipoPessoa = clienteDTO.getTipoPessoa();
-        Class<?> classe = clienteDTO.getClass();
-
-        List<String> camposFisica = Arrays.asList("cpf", "nome", "rg", "dataNascimento");
-        List<String> camposJuridica = Arrays.asList("cnpj", "razaoSocial", "inscricaoEstadual", "dataCriacao");
-
-        for (Field campo : classe.getDeclaredFields()) {
-            if (campo.isAnnotationPresent(Obrigatorio.class)) {
-                campo.setAccessible(true);
-                Obrigatorio anotacao = campo.getAnnotation(Obrigatorio.class);
-                String nomeCampo = campo.getName();
-
-                try {
-                    Object valorCampo = campo.get(clienteDTO);
-                    boolean isObrigatorio = false;
-
-                    if (anotacao.dependeDeCampo().isEmpty()) {
-                        isObrigatorio = anotacao.isObrigatorio();
-                    } else if (anotacao.dependeDeCampo().equals("tipoPessoa")) {
-                        //validação condicional: depende do tipoPessoa
-                        if (tipoPessoa == TipoPessoa.FISICA && camposFisica.contains(nomeCampo)) {
-                            isObrigatorio = true;
-                        } else if (tipoPessoa == TipoPessoa.JURIDICA && camposJuridica.contains(nomeCampo)) {
-                            isObrigatorio = true;
-                        }
-                    }
-
-                    //se for obrigatório neste contexto, valida o valor
-                    if (isObrigatorio) {
-                        if (valorCampo == null) {
-                            erros.add("O campo '" + nomeCampo + "' é obrigatório.");
-                        } else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
-                            erros.add("O campo '" + nomeCampo + "' não pode estar em branco.");
-                        }
-                    }
-
-                } catch (IllegalAccessException e) {
-                    System.out.println(e.getMessage());
-                }
-            }
-        }
-
-        List<EnderecoDTO> enderecos = clienteDTO.getEnderecos();
-
-        if(enderecos != null && !enderecos.isEmpty()) {
-            long countEnderecoPrincipal = enderecos.stream().filter(EnderecoDTO::isEnderecoPrincipal).count();
-
-            if(countEnderecoPrincipal == 0) {
-                erros.add("É obrigatório ao menos um endereço principal.");
-            } else if(countEnderecoPrincipal > 1) {
-                erros.add("Apenas um endereço pode ser marcado como principal");
-            }
-
-            for (int i = 0; i < enderecos.size(); i++) {
-                EnderecoDTO endereco = enderecos.get(i);
-                Class<?> classeEndereco = endereco.getClass();
-                String prefixo = "Endereço [" + (i + 1) + "]: ";
-
-                for (Field campoEndereco: classeEndereco.getDeclaredFields()) {
-                    if(campoEndereco.isAnnotationPresent(Obrigatorio.class)) {
-                        campoEndereco.setAccessible(true);
-
-                        if(campoEndereco.getName().equals("enderecoPrincipal")) {
-                            continue;
-                        }
-
-                        try {
-                            Object valorCampo = campoEndereco.get(endereco);
-
-                            if(valorCampo == null) {
-                                erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' é obrigatório.");
-                            } else if(valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
-                                erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' não pode estar em branco.");
-                            }
-                        } catch (IllegalAccessException e) {
-                            System.out.println(e.getMessage());
-                        }
-                    }
-                }
-            }
-        }
-
-        //se a lista de erros não estiver vazia, lança a exceção com todas as mensagens
-        if (!erros.isEmpty()) {
-            throw new CampoInvalidoException(String.join("; ", erros));
         }
     }
 }
