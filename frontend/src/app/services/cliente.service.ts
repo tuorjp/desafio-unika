@@ -4,6 +4,9 @@ import {Observable} from "rxjs";
 import {Cliente} from "../models/cliente.model";
 import {Page} from "../models/page.model";
 import {ClienteDTO} from "../dto/cliente.dto";
+import {ClienteFiltros} from "../models/cliente-filtros.model";
+import {ResumoClientesPorCidade} from "../models/resumo-clientes-por-cidade.model";
+import {TipoPessoa} from "../enum/tipo-pessoa.enum";
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +26,38 @@ export class ClienteService {
       .set('size', size.toString());
 
     return this.http.get<Page<Cliente>>(`${this.apiUrl}/list-page`, { params });
+  }
+
+  listarFiltrado({nome, cpfCnpj, cidade}: ClienteFiltros, page: number, size: number): Observable<Page<Cliente>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if(nome) {
+      params.set('nome', nome);
+    }
+
+    if(cpfCnpj) {
+      params.set('cpfCnpj', cpfCnpj)
+    }
+
+    if(cidade) {
+      params.set('cidade', cidade)
+    }
+
+    return this.http.get<Page<Cliente>>(`${this.apiUrl}cliente/list-filter`, { params });
+  }
+
+  buscarResumoPorCidade(): Observable<ResumoClientesPorCidade[]>{
+    return this.http.get<ResumoClientesPorCidade[]>(`${this.apiUrl}cliente/summary-city`);
+  }
+
+  buscaPorTipoEEstado(tipo: TipoPessoa, estado: string): Observable<Cliente[]> {
+    const params = new HttpParams()
+      .set('tipo', tipo)
+      .set('estado', estado);
+
+    return this.http.get<Cliente[]>(`${this.apiUrl}/search-by-state`, { params });
   }
 
   criar(cliente: ClienteDTO): Observable<any> {
