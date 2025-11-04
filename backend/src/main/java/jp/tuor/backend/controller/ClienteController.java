@@ -35,7 +35,7 @@ public class ClienteController {
         ByteArrayInputStream bais = clienteService.gerarRelatorioExcel();
 
         String data = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
-        String filename = "relatorio_clientes_" + data + ".xslx";
+        String filename = "relatorio_clientes_" + data + ".xlsx";
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
