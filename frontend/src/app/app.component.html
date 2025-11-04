@@ -80,7 +80,8 @@
     <tr>
       <th scope="col">#</th>
       <th scope="col">Nome</th>
-      <th scope="col">NPF/CNPJ</th>
+      <th scope="col">Email</th>
+      <th scope="col">CPF/CNPJ</th>
       <th scope="col">Data de nascimento/criação</th>
       <th scope="col">Endereço Principal</th>
       <th scope="col">Status</th>
@@ -90,8 +91,9 @@
     <tbody>
     <tr *ngFor="let cliente of listaClientes">
       <th scope="row">{{ cliente.id }}</th>
-      <th>{{ getNomeCliente(cliente) }}</th>
-      <td>{{ (cliente.tipoPessoa === 'FISICA' ? cliente.cpf : cliente.cnpj) | cpfCnpj }}</td>
+      <td>{{ getNomeCliente(cliente) }}</td>
+      <td>{{ cliente.email ? cliente.email : 'N/A' }}</td>
+      <td>{{ getDocumentoCliente(cliente) }}</td>
       <td>{{ getDataCliente(cliente) }}</td>
       <td>{{ getEnderecoPrincipal(cliente.enderecos) }}</td>
       <td>

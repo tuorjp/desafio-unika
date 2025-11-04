@@ -1,5 +1,4 @@
 import {Component} from '@angular/core';
-import {RouterOutlet} from '@angular/router';
 import {CommonModule, DatePipe} from "@angular/common";
 import {ClienteService} from "./services/cliente.service";
 import {ClienteFiltros} from "./models/cliente-filtros.model";
@@ -7,16 +6,13 @@ import {Tooltip} from 'bootstrap';
 import {FormsModule} from "@angular/forms";
 import {Cliente} from "./models/cliente.model";
 import {EnderecoDto} from "./dto/endereco.dto";
-import {CpfCnpjPipe} from "./pipes/cpf-cnpj.pipe";
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
-    RouterOutlet,
     CommonModule,
     FormsModule,
-    CpfCnpjPipe
   ],
   providers: [DatePipe],
   templateUrl: './app.component.html',
@@ -116,8 +112,38 @@ export class AppComponent {
       return 'N/A';
     }
     const principal = enderecos.find(e => e.enderecoPrincipal);
-    return principal ? `${principal.logradouro}, ${principal.numero}, ${principal.cidade}-${principal.estado}` : 'N/A';
+    return principal ? `${this.formatarCep(principal.cep)}; ${principal.logradouro}, ${principal.numero}, ${principal.cidade}-${principal.estado}` : 'N/A';
   }
 
+  private formatarCep(cep: string | null | undefined): string {
+    if (!cep) {
+      return '';
+    }
 
+    const cepLimpo = cep.replace(/\D/g, '');
+
+    if (cepLimpo.length === 8) {
+      return cepLimpo.replace(/(\d{5})(\d{3})/, '$1-$2');
+    }
+
+    return cep;
+  }
+
+  getDocumentoCliente(cliente: Cliente): string {
+    const doc = cliente.tipoPessoa === 'FISICA' ? cliente.cpf : cliente.cnpj;
+
+    if (!doc) {
+      return 'N/A';
+    }
+
+    if (cliente.tipoPessoa === 'FISICA' && doc.length === 11) {
+      return doc.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+    if (cliente.tipoPessoa === 'JURIDICA' && doc.length === 14) {
+      return doc.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+
+    return doc;
+  }
 }
