@@ -6,6 +6,7 @@ import jp.tuor.backend.model.enums.TipoOperacao;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.model.mapper.ClienteMapper;
 import jp.tuor.backend.repository.ClienteRepository;
+import jp.tuor.backend.repository.dto.ResumoClientesPorCidade;
 import jp.tuor.backend.repository.specification.ClienteSpecification;
 import jp.tuor.backend.service.exceptions.CPFCNPJDuplicadoException;
 import jp.tuor.backend.service.exceptions.CampoInvalidoException;
@@ -88,6 +89,14 @@ public class ClienteService {
 
     public Page<Cliente> listarClientesPaginado(Pageable pageable) {
         return this.clienteRepository.findAll(pageable);
+    }
+
+    public List<Cliente> buscarPorTipoEEstado(TipoPessoa tipoPessoa, String estado) {
+        return clienteRepository.findByTipoPessoaAndEstado(tipoPessoa, estado);
+    }
+
+    public List<ResumoClientesPorCidade> buscarResumoPorCidade() {
+        return clienteRepository.getResumoClientesPorCidade();
     }
 
     public Page<Cliente> buscarClientesFiltrados(String nome, String cpfCnpj, String cidade, Pageable pageable) {

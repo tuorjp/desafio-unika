@@ -2,6 +2,8 @@ package jp.tuor.backend.controller;
 
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.dto.ClienteDTO;
+import jp.tuor.backend.model.enums.TipoPessoa;
+import jp.tuor.backend.repository.dto.ResumoClientesPorCidade;
 import jp.tuor.backend.service.ClienteService;
 import jp.tuor.backend.service.exceptions.CampoInvalidoException;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +63,33 @@ public class ClienteController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return clienteService.listarClientesPaginado(pageable);
+    }
+
+    @GetMapping("search-by-state")
+    public ResponseEntity<List<Cliente>> getClientesPorTipoEEstado(
+            @RequestParam("tipo")TipoPessoa tipoPessoa,
+            @RequestParam("estado") String estado
+            ) {
+        List<Cliente> clientes = clienteService.buscarPorTipoEEstado(tipoPessoa, estado);
+        return ResponseEntity.ok(clientes);
+    }
+
+    @GetMapping("/summary-city")
+    public ResponseEntity<List<ResumoClientesPorCidade>> getResumo() {
+        List<ResumoClientesPorCidade> resumo = this.clienteService.buscarResumoPorCidade();
+        return ResponseEntity.ok(resumo);
+    }
+
+    public ResponseEntity<Page<Cliente>> listFiltered(
+            @RequestParam(value = "nome", required = false) String nome,
+            @RequestParam(value = "cpfCnpj", required = false) String cpfCnpj,
+            @RequestParam(value = "cidade", required = false) String cidade,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Cliente> clientesPaginados = clienteService.buscarClientesFiltrados(nome, cpfCnpj, cidade, pageable);
+        return ResponseEntity.ok(clientesPaginados);
     }
 
     @PostMapping("/create")
