@@ -16,6 +16,7 @@ import {EnderecoDto} from "./dto/endereco.dto";
     CommonModule,
     FormsModule
   ],
+  providers: [DatePipe],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
