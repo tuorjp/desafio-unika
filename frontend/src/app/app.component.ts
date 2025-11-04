@@ -3,6 +3,7 @@ import {RouterOutlet} from '@angular/router';
 import {CommonModule} from "@angular/common";
 import {ClienteService} from "./services/cliente.service";
 import {ClienteFiltros} from "./models/cliente-filtros.model";
+import { Tooltip } from 'bootstrap';
 
 @Component({
   selector: 'app-root',
@@ -42,5 +43,10 @@ export class AppComponent {
 
   ngOnInit(): void {
     this.carregarClientes()
+  }
+
+  ngAfterViewInit(): void {
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipTriggerList.forEach(el => new Tooltip(el));
   }
 }
