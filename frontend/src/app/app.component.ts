@@ -2,10 +2,11 @@ import {Component} from '@angular/core';
 import {CommonModule, DatePipe} from "@angular/common";
 import {ClienteService} from "./services/cliente.service";
 import {ClienteFiltros} from "./models/cliente-filtros.model";
-import {Tooltip} from 'bootstrap';
-import {FormsModule} from "@angular/forms";
+import {Modal, Tooltip} from 'bootstrap';
+import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {Cliente} from "./models/cliente.model";
 import {EnderecoDto} from "./dto/endereco.dto";
+import {ClienteDTO} from "./dto/cliente.dto";
 
 @Component({
   selector: 'app-root',
@@ -13,6 +14,7 @@ import {EnderecoDto} from "./dto/endereco.dto";
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule
   ],
   providers: [DatePipe],
   templateUrl: './app.component.html',
@@ -23,32 +25,169 @@ export class AppComponent {
   //estado do componente
   listaClientes: Cliente[] = [];
   filtros: ClienteFiltros = {nome: '', cpfCnpj: '', cidade: ''};
-
   paginaAtual: number = 0;
   tamanhoPagina: number = 10;
   totalPaginas: number = 0;
   totalElementos: number = 0;
-
   isLoading: boolean = false;
+
+  clienteForm!: FormGroup; // '!' inicializar no ngOnInit
+  modalInstance: Modal | null = null;
+  isEditMode: boolean = false;
 
   //construtor e dependências
   constructor(
     private clienteService: ClienteService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private fb: FormBuilder
   ) {
   }
 
   //inicializações
   ngOnInit(): void {
-    this.carregarClientesFiltrados()
+    this.carregarClientesFiltrados();
+    this.inicializarFormulario();
   }
 
   ngAfterViewInit(): void {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     tooltipTriggerList.forEach(el => new Tooltip(el));
+
+    const modalEl = document.getElementById("clienteModal");
+    if (modalEl) {
+      this.modalInstance = new Modal(modalEl);
+    }
   }
 
-  //funções http
+  //formulário
+  inicializarFormulario(): void {
+    this.clienteForm = this.fb.group({
+      id: [null],
+      tipoPessoa: ['FISICA', Validators.required],
+      email: ['', [Validators.email]],
+      ativo: [true],
+
+      //PF
+      cpf: [''],
+      nome: [''],
+      rg: [''],
+      dataNascimento: [''],
+
+      //PJ
+      cnpj: [''],
+      razaoSocial: [''],
+      inscricaoEstadual: [''],
+      dataCriacao: [''],
+
+      //endereços
+      enderecos: this.fb.array([])
+    });
+  }
+
+  get enderecosFormArray(): FormArray {
+    return this.clienteForm.get('enderecos') as FormArray;
+  }
+
+  criarEnderecoFormGroup(endereco?: EnderecoDto): FormGroup {
+    return this.fb.group({
+      id: [endereco?.id || null],
+      logradouro: [endereco?.logradouro || '', Validators.required],
+      numero: [endereco?.numero || '', Validators.required],
+      cep: [endereco?.cep || '', Validators.required],
+      bairro: [endereco?.bairro || '', Validators.required],
+      cidade: [endereco?.cidade || '', Validators.required],
+      estado: [endereco?.estado || '', Validators.required],
+      enderecoPrincipal: [endereco?.enderecoPrincipal || false],
+      complemento: [endereco?.complemento || '']
+    })
+  }
+
+  adicionarEndereco(): void {
+    const novoEndereco = this.criarEnderecoFormGroup();
+    this.enderecosFormArray.push(novoEndereco);
+  }
+
+  removerEndereco(index: number){
+    this.enderecosFormArray.removeAt(index)
+  }
+
+  abrirModalNovo(): void {
+    this.isEditMode = false;
+    this.clienteForm.reset({
+      tipoPessoa: 'FISICA',
+      ativo: true
+    });
+
+    this.enderecosFormArray.clear();
+    this.adicionarEndereco();
+    this.modalInstance?.show();
+  }
+
+  abrirModalEditar(cliente: Cliente) {
+    this.isEditMode = false;
+    this.clienteForm.reset();
+    this.enderecosFormArray.clear();
+
+    const dataNascFormatada = this.datePipe.transform(cliente.dataNascimento, 'yyyy-MM-dd');
+    const dataCriacaoFormatada = this.datePipe.transform(cliente.dataCriacao, 'yyyy-MM-dd');
+
+    this.clienteForm.patchValue({
+      ...cliente,
+      dataNascimento: dataNascFormatada,
+      dataCriacao: dataCriacaoFormatada
+    });
+
+    if(cliente.enderecos && cliente.enderecos.length > 0) {
+      cliente.enderecos.forEach((element) => {
+        this.enderecosFormArray.push(this.criarEnderecoFormGroup(element as EnderecoDto));
+      });
+    } else {
+      this.adicionarEndereco();
+    }
+
+    this.modalInstance?.show();
+  }
+
+  fecharModal() {
+    this.modalInstance?.hide();
+  }
+
+  onSalvar() {
+    if(this.clienteForm.invalid) {
+      //TODO
+      console.error("Formulário inválido");
+      return;
+    }
+
+    const clienteDto: ClienteDTO = this.clienteForm.value;
+    if(this.isEditMode) {
+      this.clienteService.editar(clienteDto)
+        .subscribe({
+          next: (res) => {
+            console.log("Cliente editado")
+            this.fecharModal();
+            this.carregarClientesFiltrados();
+          },
+          error: (err) => {
+            console.error("Erro ao editar cliente", err)
+          }
+        });
+    } else {
+      this.clienteService.criar(clienteDto)
+        .subscribe({
+          next: (res) => {
+            console.log("Cliente criado")
+            this.fecharModal();
+            this.carregarClientesFiltrados();
+          },
+          error: (err) => {
+            console.error("Erro ao criar cliente ", err)
+          }
+        });
+    }
+  }
+
+  //funções http, chamadas ao service
   carregarClientesFiltrados(): void {
     this.isLoading = true;
     this.listaClientes = [];
@@ -69,7 +208,7 @@ export class AppComponent {
       });
   }
 
-  //chamadas da UI
+  //chamadas da UI filtros e tabela
   onFiltrarClick(): void {
     this.paginaAtual = 0;
     this.carregarClientesFiltrados()
@@ -89,10 +228,10 @@ export class AppComponent {
   }
 
   paginaAnterior(): void {
-     if(this.paginaAtual > 0) {
-       this.paginaAtual--;
-       this.carregarClientesFiltrados();
-     }
+    if (this.paginaAtual > 0) {
+      this.paginaAtual--;
+      this.carregarClientesFiltrados();
+    }
   }
 
   //auxiliares
