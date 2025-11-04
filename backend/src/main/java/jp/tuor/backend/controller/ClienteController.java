@@ -80,6 +80,7 @@ public class ClienteController {
         return ResponseEntity.ok(resumo);
     }
 
+    @GetMapping("/list-filter")
     public ResponseEntity<Page<Cliente>> listFiltered(
             @RequestParam(value = "nome", required = false) String nome,
             @RequestParam(value = "cpfCnpj", required = false) String cpfCnpj,
