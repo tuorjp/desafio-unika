@@ -1,10 +1,18 @@
 <header class="header-home">
   <h2>Clientes e Endereços</h2>
 </header>
-<div class="actions-container">
-  <div><button type="button" class="btn btn-primary">Novo</button></div>
-  <div><button type="button" class="btn btn-success">Exportar .xlsx</button></div>
-  <div><button type="button" class="btn btn-danger">Exportar PDF</button></div>
+<div class="actions-filter-container">
+  <div class="actions-container">
+    <div><button type="button" class="btn btn-primary">Novo</button></div>
+    <div><button type="button" class="btn btn-success">Exportar .xlsx</button></div>
+    <div><button type="button" class="btn btn-danger">Exportar PDF</button></div>
+  </div>
+  <div class="filters-container">
+    <div><input type="text" class="form-control" id="nome" placeholder="Nome"></div>
+    <div><input type="text" class="form-control" id="cpfCnpj" placeholder="CPF/CNPJ"></div>
+    <div><input type="text" class="form-control" id="cidade" placeholder="Cidade"></div>
+    <div class="filter-btn"><i class="bi bi-funnel-fill text-primary h2"></i></div>
+  </div>
 </div>
 <div class="table-container card">
   <table class="table">

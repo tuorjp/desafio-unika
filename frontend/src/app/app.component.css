@@ -1,21 +1,39 @@
-.table-container {
+.actions-filter-container {
   display: flex;
   flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  padding: 6px;
+  gap: 1rem;
+  padding: 0.4rem;
 }
 
 .actions-container {
   display: flex;
   flex-direction: row;
-  gap: 4px;
-  padding: 6px;
+  gap: 0.2rem;
+}
+
+.filters-container {
+  display: flex;
+  flex-direction: row;
+  gap: 0.2rem;
+}
+
+.filter-btn {
+  margin-left: 0.4rem;
+  cursor: pointer;
+}
+
+.table-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 0.3rem;
+  margin-top: 1rem;
 }
 
 .table-actions {
   display: flex;
-  gap: 6px;
+  gap: 0.3rem;
 }
 
 .table-actions i {
