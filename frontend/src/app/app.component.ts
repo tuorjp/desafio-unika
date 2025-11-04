@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
 import {CommonModule} from "@angular/common";
 import {ClienteService} from "./services/cliente.service";
+import {ClienteFiltros} from "./models/cliente-filtros.model";
 
 @Component({
   selector: 'app-root',
@@ -18,7 +19,14 @@ export class AppComponent {
 
   carregarClientes(): void {
     console.log('TESTE');
-    this.clienteService.listarTodos()
+
+    const filters: ClienteFiltros = {
+      cpfCnpj: '',
+      cidade: '',
+      nome: ''
+    }
+
+    this.clienteService.listarFiltrado(filters, 0, 10)
       .subscribe({
         next: (clientes) => {
           console.log('Clientes: ', clientes);
