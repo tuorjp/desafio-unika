@@ -1,13 +1,19 @@
 import {Endereco} from "./endereco.model";
+import {TipoPessoa} from "../enum/tipo-pessoa.enum";
+import {EnderecoDto} from "../dto/endereco.dto";
 
 export interface Cliente {
-  id: number;
-  nome: string;
-  razaoSocial: string;
-  cpf: string;
-  cnpj: string;
-  dataNascimento: Date;
-  dataCriacao: Date;
-  ativo: boolean;
-  enderecos: Endereco[];
+  id?: number;
+  tipoPessoa: TipoPessoa;
+  cpf?: string;
+  cnpj?: string;
+  nome?: string;
+  rg?: string;
+  dataNascimento?: Date;
+  dataCriacao?: Date;
+  razaoSocial?: string;
+  inscricaoEstadual?: string;
+  email?: string;
+  ativo?: boolean;
+  enderecos?: EnderecoDto[];
 }
