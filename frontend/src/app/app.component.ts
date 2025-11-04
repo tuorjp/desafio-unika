@@ -7,6 +7,7 @@ import {Tooltip} from 'bootstrap';
 import {FormsModule} from "@angular/forms";
 import {Cliente} from "./models/cliente.model";
 import {EnderecoDto} from "./dto/endereco.dto";
+import {CpfCnpjPipe} from "./pipes/cpf-cnpj.pipe";
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,8 @@ import {EnderecoDto} from "./dto/endereco.dto";
   imports: [
     RouterOutlet,
     CommonModule,
-    FormsModule
+    FormsModule,
+    CpfCnpjPipe
   ],
   providers: [DatePipe],
   templateUrl: './app.component.html',
@@ -102,12 +104,6 @@ export class AppComponent {
     const nome = cliente.tipoPessoa == 'FISICA' ? cliente.nome : cliente.razaoSocial;
 
     return nome ? nome : ''
-  }
-
-  getDocumentoCliente(cliente: Cliente): string {
-    const cpfCnpj = cliente.tipoPessoa == 'FISICA' ? cliente.cpf : cliente.cnpj;
-
-    return cpfCnpj ? cpfCnpj : ''
   }
 
   getDataCliente(cliente: Cliente): string {

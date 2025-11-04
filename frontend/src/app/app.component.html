@@ -91,7 +91,7 @@
     <tr *ngFor="let cliente of listaClientes">
       <th scope="row">{{ cliente.id }}</th>
       <th>{{ getNomeCliente(cliente) }}</th>
-      <td>{{ getDocumentoCliente(cliente) }}</td>
+      <td>{{ (cliente.tipoPessoa === 'FISICA' ? cliente.cpf : cliente.cnpj) | cpfCnpj }}</td>
       <td>{{ getDataCliente(cliente) }}</td>
       <td>{{ getEnderecoPrincipal(cliente.enderecos) }}</td>
       <td>
