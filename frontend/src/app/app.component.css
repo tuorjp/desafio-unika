@@ -39,3 +39,30 @@
 .table-actions i {
   cursor: pointer;
 }
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-info {
+  margin: 0 0.5rem;
+  font-weight: 500;
+}
+
+.botao-paginacao[disabled],
+.botao-paginacao:disabled {
+  pointer-events: auto;
+  cursor: not-allowed;
+}

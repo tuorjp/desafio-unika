@@ -115,7 +115,7 @@ export class AppComponent {
     return this.datePipe.transform(data, 'dd/MM/yyyy') || 'N/A';
   }
 
-  getEnderecoPrincipal(enderecos: EnderecoDto[]): string {
+  getEnderecoPrincipal(enderecos: EnderecoDto[] | undefined): string {
     if (!enderecos || enderecos.length === 0) {
       return 'N/A';
     }

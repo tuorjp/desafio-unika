@@ -3,15 +3,75 @@
 </header>
 <div class="actions-filter-container">
   <div class="actions-container">
-    <div><button type="button" class="btn btn-primary">Novo</button></div>
-    <div><button type="button" class="btn btn-success">Exportar .xlsx</button></div>
-    <div><button type="button" class="btn btn-danger">Exportar PDF</button></div>
+    <div>
+      <button type="button" class="btn btn-sm btn-primary">
+        Novo
+        <i class="bi bi-plus-lg"></i>
+      </button>
+    </div>
+    <div>
+      <button type="button" class="btn btn-sm btn-success">
+        Importar .xlsx
+        <i class="bi bi-file-earmark-arrow-up"></i>
+      </button>
+    </div>
+    <div>
+      <button type="button" class="btn btn-sm btn-success">
+        Exportar .xlsx
+        <i class="bi bi-file-earmark-arrow-down"></i>
+      </button>
+    </div>
+    <div>
+      <button type="button" class="btn btn-sm btn-danger">
+        Exportar PDF
+        <i class="bi bi-filetype-pdf"></i>
+      </button>
+    </div>
   </div>
   <div class="filters-container">
-    <div><input type="text" class="form-control" id="nome" placeholder="Nome"></div>
-    <div><input type="text" class="form-control" id="cpfCnpj" placeholder="CPF/CNPJ"></div>
-    <div><input type="text" class="form-control" id="cidade" placeholder="Cidade"></div>
-    <div class="filter-btn"><i class="bi bi-funnel-fill text-primary h2"></i></div>
+    <div>
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Nome"
+        [(ngModel)]="filtros.nome"
+        (keyup.enter)="onFiltrarClick()"
+      >
+    </div>
+    <div>
+      <input
+        type="text"
+        class="form-control"
+        placeholder="CPF/CNPJ"
+        [(ngModel)]="filtros.cpfCnpj"
+        (keyup.enter)="onFiltrarClick()"
+      >
+    </div>
+    <div>
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Cidade"
+        [(ngModel)]="filtros.cidade"
+        (keyup.enter)="onFiltrarClick()"
+      >
+    </div>
+    <div class="filter-btn" (click)="onFiltrarClick()">
+      <i
+        class="bi bi-funnel-fill text-primary h2"
+        data-bs-toggle="tooltip"
+        title="Filtrar"
+      >
+      </i>
+    </div>
+    <div class="filter-btn" (click)="onLimparClick()">
+      <i
+        class="bi bi-x-circle text-danger h2"
+        data-bs-toggle="tooltip"
+        title="Limpar Filtros"
+      >
+      </i>
+    </div>
   </div>
 </div>
 <div class="table-container card">
@@ -28,19 +88,64 @@
     </tr>
     </thead>
     <tbody>
-    <tr>
-      <th scope="row">1</th>
-      <th>João Pedro</th>
-      <td>006.107.581-79</td>
-      <td>27/08/2000</td>
-      <td>Rua PP7 Qd 10 Lt 29</td>
-      <td>Ativo</td>
-      <td class="table-actions">
-        <i class="bi bi-trash-fill text-danger"></i>
-        <i class="bi bi-pencil-fill text-primary"></i>
-        <i class="bi bi-download"></i>
+    <tr *ngFor="let cliente of listaClientes">
+      <th scope="row">{{ cliente.id }}</th>
+      <th>{{ getNomeCliente(cliente) }}</th>
+      <td>{{ getDocumentoCliente(cliente) }}</td>
+      <td>{{ getDataCliente(cliente) }}</td>
+      <td>{{ getEnderecoPrincipal(cliente.enderecos) }}</td>
+      <td>
+          <span class="badge" [ngClass]="cliente.ativo ? 'text-bg-success' : 'text-bg-danger'">
+            {{ cliente.ativo ? 'Ativo' : 'Inativo' }}
+          </span>
       </td>
+      <td class="table-actions">
+        <i class="bi bi-trash-fill text-danger" data-bs-toggle="tooltip" title="Excluir"></i>
+        <i class="bi bi-pencil-fill text-primary" data-bs-toggle="tooltip" title="Editar"></i>
+        <i class="bi bi-download" data-bs-toggle="tooltip" title="Baixar Relatório"></i>
+      </td>
+    </tr>
+
+    <!--loading-->
+    <tr *ngIf="isLoading">
+      <td colspan="7" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Carregando</span>
+        </div>
+      </td>
+    </tr>
+    <!--resposta vazia-->
+    <tr *ngIf="!isLoading && listaClientes.length === 0">
+      <td colspan="7" class="text-center">Nenhum cliente encontrado</td>
     </tr>
     </tbody>
   </table>
+</div>
+<div class="pagination-container" *ngIf="!isLoading && totalPaginas > 0">
+  <span class="total-registros">
+    Total de registros {{ totalElementos }}
+  </span>
+  <div class="pagination-controls" *ngIf="!isLoading && totalPaginas > 0">
+    <button
+      class="btn btn-sm btn-dark botao-paginacao"
+      (click)="paginaAnterior()"
+      [disabled]="paginaAtual === 0"
+    >
+      <i class="bi bi-chevron-left"></i>
+      Anterior
+    </button>
+
+    <span class="page-info">
+      Página {{ paginaAtual + 1 }} de {{ totalPaginas }}
+    </span>
+
+    <button
+      class="btn btn-sm btn-dark botao-paginacao"
+      (click)="proximaPagina()"
+      [disabled]="paginaAtual >= totalPaginas - 1"
+    >
+      Próxima
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
 </div>
