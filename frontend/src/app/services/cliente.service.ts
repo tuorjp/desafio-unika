@@ -45,11 +45,11 @@ export class ClienteService {
       params.set('cidade', cidade)
     }
 
-    return this.http.get<Page<Cliente>>(`${this.apiUrl}cliente/list-filter`, { params });
+    return this.http.get<Page<Cliente>>(`${this.apiUrl}/list-filter`, { params });
   }
 
   buscarResumoPorCidade(): Observable<ResumoClientesPorCidade[]>{
-    return this.http.get<ResumoClientesPorCidade[]>(`${this.apiUrl}cliente/summary-city`);
+    return this.http.get<ResumoClientesPorCidade[]>(`${this.apiUrl}/summary-city`);
   }
 
   buscaPorTipoEEstado(tipo: TipoPessoa, estado: string): Observable<Cliente[]> {
