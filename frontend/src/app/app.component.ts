@@ -50,6 +50,7 @@ export class AppComponent {
   ngOnInit(): void {
     this.carregarClientesFiltrados();
     this.inicializarFormulario();
+    this.setUpConditionalValidators();
   }
 
   ngAfterViewInit(): void {
@@ -60,6 +61,11 @@ export class AppComponent {
     if (modalEl) {
       this.modalInstance = new Modal(modalEl);
     }
+  }
+
+  //get para controls dop formulário
+  get f() {
+    return this.clienteForm.controls;
   }
 
   //formulário
@@ -83,8 +89,61 @@ export class AppComponent {
       dataCriacao: [''],
 
       //endereços
-      enderecos: this.fb.array([])
+      enderecos: this.fb.array([], Validators.minLength(1))
     });
+
+    this.updateValidators(this.clienteForm.get('tipoPessoa')?.value)
+  }
+
+  setUpConditionalValidators(): void {
+    this.clienteForm.get('tipoPessoa')?.valueChanges.subscribe(tipo => {
+      this.updateValidators(tipo);
+    });
+  }
+
+  updateValidators(tipo: string): void {
+    //campos
+    const cpf = this.clienteForm.get('cpf');
+    const nome = this.clienteForm.get('nome');
+    const cnpj = this.clienteForm.get('cnpj');
+    const razaoSocial = this.clienteForm.get('razaoSocial');
+    const dataNascimento = this.clienteForm.get('dataNascimento');
+    const dataCriacao = this.clienteForm.get('dataCriacao');
+    const rg = this.clienteForm.get('rg');
+    const inscricaoEstadual = this.clienteForm.get('inscricaoEstadual');
+
+    //limpar validações
+    cpf?.clearValidators();
+    nome?.clearValidators();
+    cnpj?.clearValidators();
+    razaoSocial?.clearValidators();
+    dataCriacao?.clearValidators();
+    dataNascimento?.clearValidators();
+    rg?.clearValidators();
+    inscricaoEstadual?.clearValidators();
+
+    //setar validações
+    if (tipo === 'FISICA') {
+      cpf?.setValidators([Validators.required]);
+      nome?.setValidators([Validators.required]);
+      dataNascimento?.setValidators([Validators.required]);
+      rg?.setValidators([Validators.required]);
+    } else if (tipo === 'JURIDICA') {
+      cnpj?.setValidators([Validators.required]);
+      razaoSocial?.setValidators([Validators.required]);
+      dataCriacao?.setValidators([Validators.required]);
+      inscricaoEstadual?.setValidators([Validators.required]);
+    }
+
+    //atualizar e validar
+    cpf?.updateValueAndValidity();
+    nome?.updateValueAndValidity();
+    cnpj?.updateValueAndValidity();
+    razaoSocial?.updateValueAndValidity();
+    dataNascimento?.updateValueAndValidity();
+    dataCriacao?.updateValueAndValidity();
+    rg?.updateValueAndValidity();
+    inscricaoEstadual?.updateValueAndValidity();
   }
 
   get enderecosFormArray(): FormArray {
@@ -159,6 +218,11 @@ export class AppComponent {
   //criar/editar cliente
   onSalvar() {
     if (this.clienteForm.invalid) {
+      this.clienteForm.markAllAsTouched();
+      this.enderecosFormArray.controls.forEach(control => {
+        (control as FormGroup).markAllAsTouched();
+      });
+      this.notification.showWarning('Preencha os campos obrigatórios e adicione ao menos um endereço.');
       return;
     }
 
@@ -184,7 +248,8 @@ export class AppComponent {
             this.notification.showSuccess("Cliente criado com sucesso!")
           },
           error: (err) => {
-            console.error("Erro ao criar cliente ", err)
+            console.error("Erro ao criar cliente ", err?.message);
+            this.notification.onApiError(err);
           }
         });
     }
@@ -201,7 +266,6 @@ export class AppComponent {
           this.listaClientes = pagina.content;
           this.totalPaginas = pagina.totalPages;
           this.totalElementos = pagina.totalElements;
-          this.notification.showSuccess("Clientes carregados!")
         },
         error: (err) => {
           this.notification.showError(err?.message)
