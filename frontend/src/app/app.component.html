@@ -209,7 +209,7 @@
           <div *ngIf="clienteForm.get('tipoPessoa')?.value === 'FISICA'" class="row g-3 mb-3">
             <div class="col-md-4">
               <label for="cpf" class="form-label">CPF *</label>
-              <input type="text" id="cpf" class="form-control" formControlName="cpf" [class.is-invalid]="this.f['cpf'].invalid && (f['cpf'].dirty || f['cpf'].touched)" />
+              <input mask="000.000.000-00" type="text" id="cpf" class="form-control" formControlName="cpf" [class.is-invalid]="this.f['cpf'].invalid && (f['cpf'].dirty || f['cpf'].touched)" />
               <div *ngIf="f['cpf'].invalid && (f['cpf'].dirty || f['cpf'].touched)" class="invalid-feedback">
                 <div *ngIf="f['cpf'].errors?.['required']">
                   O CPF é obrigatório.
@@ -249,7 +249,7 @@
           <div *ngIf="clienteForm.get('tipoPessoa')?.value === 'JURIDICA'" class="row g-3 mb-3">
             <div class="col-md-4">
               <label for="cnpj" class="form-label">CNPJ *</label>
-              <input type="text" id="cnpj" class="form-control" formControlName="cnpj" [class.is-invalid]="this.f['cnpj'].invalid && (f['cnpj'].dirty || f['cnpj'].touched)">
+              <input mask="00.000.000/0000-00" type="text" id="cnpj" class="form-control" formControlName="cnpj" [class.is-invalid]="this.f['cnpj'].invalid && (f['cnpj'].dirty || f['cnpj'].touched)">
               <div *ngIf="f['cnpj'].invalid && (f['cnpj'].dirty || f['cnpj'].touched)" class="invalid-feedback">
                 <div *ngIf="f['cnpj'].errors?.['required']">
                   O CNPJ é obrigatório.
@@ -267,7 +267,7 @@
             </div>
             <div class="col-md-3">
               <label for="inscricaoEstadual" class="form-label">Insc. Estadual</label>
-              <input type="text" id="inscricaoEstadual" class="form-control" formControlName="inscricaoEstadual" [class.is-invalid]="this.f['inscricaoEstadual'].invalid && (f['inscricaoEstadual'].dirty || f['inscricaoEstadual'].touched)">
+              <input mask="0*" type="text" id="inscricaoEstadual" class="form-control" formControlName="inscricaoEstadual" [class.is-invalid]="this.f['inscricaoEstadual'].invalid && (f['inscricaoEstadual'].dirty || f['inscricaoEstadual'].touched)">
               <div *ngIf="f['inscricaoEstadual'].invalid && (f['inscricaoEstadual'].dirty || f['inscricaoEstadual'].touched)" class="invalid-feedback">
                 <div *ngIf="f['inscricaoEstadual'].errors?.['required']">
                   A inscrição estadual é obrigatória.
@@ -313,7 +313,10 @@
                     <input type="text" class="form-control" formControlName="numero" [class.is-invalid]="endGroup.get('numero')?.invalid && (endGroup.get('numero')?.dirty || endGroup.get('numero')?.touched)">
                     <div *ngIf="endGroup?.get('numero')?.invalid && (endGroup?.get('numero')?.dirty || endGroup?.get('numero')?.touched)" class="invalid-feedback">
                       <div *ngIf="endGroup?.get('numero')?.errors?.['required']">
-                        Número obrigatório, s/n caso não haja
+                        Número obrigatório (ou "s/n").
+                      </div>
+                      <div *ngIf="endGroup?.get('numero')?.errors?.['invalidNumero']">
+                        O valor deve ser um número ou "s/n".
                       </div>
                     </div>
                   </div>
@@ -326,7 +329,7 @@
                 <div class="row g-3 mt-1">
                   <div class="col-md-3">
                     <label class="form-label">CEP *</label>
-                    <input type="text" class="form-control" formControlName="cep" [class.is-invalid]="endGroup.get('cep')?.invalid && (endGroup.get('cep')?.dirty || endGroup.get('cep')?.touched)">
+                    <input mask="00000-000" type="text" class="form-control" formControlName="cep" [class.is-invalid]="endGroup.get('cep')?.invalid && (endGroup.get('cep')?.dirty || endGroup.get('cep')?.touched)">
                     <div *ngIf="endGroup?.get('cep')?.invalid && (endGroup?.get('cep')?.dirty || endGroup?.get('cep')?.touched)" class="invalid-feedback">
                       <div *ngIf="endGroup?.get('cep')?.errors?.['required']">
                         CEP obrigatório.

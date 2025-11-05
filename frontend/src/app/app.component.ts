@@ -3,11 +3,22 @@ import {CommonModule, DatePipe} from "@angular/common";
 import {ClienteService} from "./services/cliente.service";
 import {ClienteFiltros} from "./models/cliente-filtros.model";
 import {Modal, Tooltip} from 'bootstrap';
-import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {
+  AbstractControl,
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule, ValidationErrors,
+  ValidatorFn,
+  Validators
+} from "@angular/forms";
 import {Cliente} from "./models/cliente.model";
 import {EnderecoDto} from "./dto/endereco.dto";
 import {ClienteDTO} from "./dto/cliente.dto";
 import {NotificationService} from "./shared/notification/notification.service";
+import {NgxMaskDirective} from "ngx-mask";
+import {snOuNumberValidator} from "./shared/validators/custom-validators";
 
 @Component({
   selector: 'app-root',
@@ -15,7 +26,8 @@ import {NotificationService} from "./shared/notification/notification.service";
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgxMaskDirective
   ],
   providers: [DatePipe],
   templateUrl: './app.component.html',
@@ -46,6 +58,7 @@ export class AppComponent {
   ) {
   }
 
+  //--------------------------------------------------------------------------------------------------------
   //inicializações
   ngOnInit(): void {
     this.carregarClientesFiltrados();
@@ -63,12 +76,8 @@ export class AppComponent {
     }
   }
 
-  //get para controls dop formulário
-  get f() {
-    return this.clienteForm.controls;
-  }
-
-  //formulário
+  //--------------------------------------------------------------------------------------------------------
+  //formulário do cliente e validadores
   inicializarFormulario(): void {
     this.clienteForm = this.fb.group({
       id: [null],
@@ -95,12 +104,19 @@ export class AppComponent {
     this.updateValidators(this.clienteForm.get('tipoPessoa')?.value)
   }
 
+  //get para controls do formulário
+  get f() {
+    return this.clienteForm.controls;
+  }
+
+  //set validadores dinâmicos com base em tipoPessoa
   setUpConditionalValidators(): void {
     this.clienteForm.get('tipoPessoa')?.valueChanges.subscribe(tipo => {
       this.updateValidators(tipo);
     });
   }
 
+  //validadores dinâmicos
   updateValidators(tipo: string): void {
     //campos
     const cpf = this.clienteForm.get('cpf');
@@ -146,15 +162,17 @@ export class AppComponent {
     inscricaoEstadual?.updateValueAndValidity();
   }
 
+  //get para endereços do formulário
   get enderecosFormArray(): FormArray {
     return this.clienteForm.get('enderecos') as FormArray;
   }
 
+  //cria um FormGroup com os campos de endereço e os validadores
   criarEnderecoFormGroup(endereco?: EnderecoDto): FormGroup {
     return this.fb.group({
       id: [endereco?.id || null],
       logradouro: [endereco?.logradouro || '', Validators.required],
-      numero: [endereco?.numero || '', Validators.required],
+      numero: [endereco?.numero || '', [snOuNumberValidator()]],
       cep: [endereco?.cep || '', Validators.required],
       bairro: [endereco?.bairro || '', Validators.required],
       cidade: [endereco?.cidade || '', Validators.required],
@@ -173,6 +191,8 @@ export class AppComponent {
     this.enderecosFormArray.removeAt(index)
   }
 
+  //--------------------------------------------------------------------------------------------------------
+  //modal
   abrirModalNovo(): void {
     this.isEditMode = false;
     this.clienteForm.reset({
@@ -186,7 +206,7 @@ export class AppComponent {
   }
 
   abrirModalEditar(cliente: Cliente) {
-    this.isEditMode = false;
+    this.isEditMode = true;
     this.clienteForm.reset();
     this.enderecosFormArray.clear();
 
@@ -214,6 +234,7 @@ export class AppComponent {
     this.modalInstance?.hide();
   }
 
+  //--------------------------------------------------------------------------------------------------------
   //funções http, chamadas ao service
   //criar/editar cliente
   onSalvar() {
@@ -226,7 +247,8 @@ export class AppComponent {
       return;
     }
 
-    const clienteDto: ClienteDTO = this.clienteForm.value;
+    // const clienteDto: ClienteDTO = this.clienteForm.value;
+    const clienteDto: ClienteDTO = this.getCleanFormValue();
     if (this.isEditMode) {
       this.clienteService.editar(clienteDto)
         .subscribe({
@@ -276,6 +298,7 @@ export class AppComponent {
       });
   }
 
+  //--------------------------------------------------------------------------------------------------------
   //chamadas da UI filtros e tabela
   onFiltrarClick(): void {
     this.paginaAtual = 0;
@@ -302,6 +325,7 @@ export class AppComponent {
     }
   }
 
+  //--------------------------------------------------------------------------------------------------------
   //auxiliares
   getNomeCliente(cliente: Cliente): string {
     const nome = cliente.tipoPessoa == 'FISICA' ? cliente.nome : cliente.razaoSocial;
@@ -352,5 +376,32 @@ export class AppComponent {
     }
 
     return doc;
+  }
+
+  private getCleanFormValue(): ClienteDTO {
+    const formValue = { ...this.clienteForm.value } as ClienteDTO;
+
+    formValue.cpf = this.cleanString(formValue.cpf);
+    formValue.rg = this.cleanString(formValue.rg);
+    formValue.cnpj = this.cleanString(formValue.cnpj);
+    formValue.inscricaoEstadual = this.cleanString(formValue.inscricaoEstadual);
+
+    if(formValue.enderecos && formValue.enderecos.length > 0) {
+      formValue.enderecos = formValue.enderecos.map(end => {
+        const cleanEnd = { ...end };
+        cleanEnd.cep = this.cleanString(cleanEnd.cep);
+        return cleanEnd;
+      })
+    }
+
+    return formValue;
+  }
+
+  private cleanString(value: string | null | undefined): string {
+    if(!value) {
+      return  '';
+    }
+
+    return value.replace(/\D/g, '');
   }
 }

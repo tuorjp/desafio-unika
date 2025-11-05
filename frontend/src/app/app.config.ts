@@ -5,6 +5,7 @@ import { routes } from './app.routes';
 import {provideHttpClient, withFetch} from "@angular/common/http";
 import {provideToastr} from "ngx-toastr";
 import {provideAnimations} from "@angular/platform-browser/animations";
+import {provideNgxMask} from "ngx-mask";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,6 +17,7 @@ export const appConfig: ApplicationConfig = {
       positionClass: 'toast-top-right',
       preventDuplicates: true,
       closeButton: true
-    })
+    }),
+    provideNgxMask()
   ]
 };
