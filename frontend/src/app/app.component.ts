@@ -3,16 +3,7 @@ import {CommonModule, DatePipe} from "@angular/common";
 import {ClienteService} from "./services/cliente.service";
 import {ClienteFiltros} from "./models/cliente-filtros.model";
 import {Modal, Tooltip} from 'bootstrap';
-import {
-  AbstractControl,
-  FormArray,
-  FormBuilder,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule, ValidationErrors,
-  ValidatorFn,
-  Validators
-} from "@angular/forms";
+import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {Cliente} from "./models/cliente.model";
 import {EnderecoDto} from "./dto/endereco.dto";
 import {ClienteDTO} from "./dto/cliente.dto";
@@ -381,20 +372,46 @@ export class AppComponent {
   private getCleanFormValue(): ClienteDTO {
     const formValue = { ...this.clienteForm.value } as ClienteDTO;
 
-    formValue.cpf = this.cleanString(formValue.cpf);
-    formValue.rg = this.cleanString(formValue.rg);
-    formValue.cnpj = this.cleanString(formValue.cnpj);
-    formValue.inscricaoEstadual = this.cleanString(formValue.inscricaoEstadual);
+    const cleanDTO: any = {
+      id: formValue.id,
+      tipoPessoa: formValue.tipoPessoa,
+      email: formValue.email,
+      ativo: formValue.ativo,
+    }
+
+    if(formValue.tipoPessoa === 'FISICA') {
+      cleanDTO.nome = formValue.nome;
+      cleanDTO.dataNascimento = formValue.dataNascimento;
+      cleanDTO.cpf = this.cleanString(formValue.cpf);
+      cleanDTO.rg = this.cleanString(formValue.rg);
+
+      cleanDTO.razaoSocial = null;
+      cleanDTO.cnpj = null;
+      cleanDTO.inscricaoEstadual = null;
+      cleanDTO.dataCriacao = null;
+    } else if(formValue.tipoPessoa === 'JURIDICA') {
+      cleanDTO.razaoSocial = formValue.razaoSocial;
+      cleanDTO.dataCriacao = formValue.dataCriacao;
+      cleanDTO.cnpj = this.cleanString(formValue.cnpj);
+      cleanDTO.inscricaoEstadual = this.cleanString(formValue.inscricaoEstadual);
+
+      cleanDTO.nome = null;
+      cleanDTO.dataNascimento = null;
+      cleanDTO.cpf = null;
+      cleanDTO.rg = null;
+    }
 
     if(formValue.enderecos && formValue.enderecos.length > 0) {
-      formValue.enderecos = formValue.enderecos.map(end => {
+      cleanDTO.enderecos = formValue.enderecos.map(end => {
         const cleanEnd = { ...end };
         cleanEnd.cep = this.cleanString(cleanEnd.cep);
         return cleanEnd;
-      })
+      });
+    } else {
+      cleanDTO.enderecos = [];
     }
 
-    return formValue;
+    return cleanDTO as ClienteDTO;
   }
 
   private cleanString(value: string | null | undefined): string {

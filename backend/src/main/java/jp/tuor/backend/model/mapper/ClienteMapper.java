@@ -41,14 +41,14 @@ public class ClienteMapper {
 
     public void limpaCamposNaoUsados(Cliente cliente, ClienteDTO clienteDTO) {
         if (clienteDTO.getTipoPessoa().equals(TipoPessoa.FISICA)) {
-            cliente.setCnpj("");
-            cliente.setRazaoSocial("");
-            cliente.setInscricaoEstadual("");
+            cliente.setCnpj(null);
+            cliente.setRazaoSocial(null);
+            cliente.setInscricaoEstadual(null);
             cliente.setDataCriacao(null);
         } else {
-            cliente.setCpf("");
-            cliente.setNome("");
-            cliente.setRg("");
+            cliente.setCpf(null);
+            cliente.setNome(null);
+            cliente.setRg(null);
             cliente.setDataNascimento(null);
         }
     }
