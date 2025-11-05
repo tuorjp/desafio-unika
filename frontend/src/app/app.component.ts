@@ -233,14 +233,28 @@ export class AppComponent {
     this.modalInstance?.show();
   }
 
-  fecharModal() {
+  fecharModalFormulario() {
     this.modalInstance?.hide();
+  }
+
+  abrirModalDelete(id: number | undefined, nomeCliente: string): void {
+    if (id) {
+      this.clienteParaDeletarId = id;
+      this.clienteParaDeletarNome = nomeCliente;
+      this.deleteModalInstance?.show();
+    }
+  }
+
+  fecharModalDelete() {
+    this.deleteModalInstance?.hide();
+    this.clienteParaDeletarId = null;
+    this.clienteParaDeletarNome = null;
   }
 
   //--------------------------------------------------------------------------------------------------------
   //funções http, chamadas ao service
   //criar/editar cliente
-  onSalvar() {
+  salvarCliente() {
     if (this.clienteForm.invalid) {
       this.clienteForm.markAllAsTouched();
       this.enderecosFormArray.controls.forEach(control => {
@@ -257,7 +271,7 @@ export class AppComponent {
         .subscribe({
           next: (res) => {
             console.log("Cliente editado")
-            this.fecharModal();
+            this.fecharModalFormulario();
             this.carregarClientesFiltrados();
           },
           error: (err) => {
@@ -268,7 +282,7 @@ export class AppComponent {
       this.clienteService.criar(clienteDto)
         .subscribe({
           next: (res) => {
-            this.fecharModal();
+            this.fecharModalFormulario();
             this.carregarClientesFiltrados();
             this.notification.showSuccess("Cliente criado com sucesso!")
           },
@@ -281,20 +295,6 @@ export class AppComponent {
   }
 
   //deletar
-  openModalDelete(id: number | undefined, nomeCliente: string): void {
-    if (id) {
-      this.clienteParaDeletarId = id;
-      this.clienteParaDeletarNome = nomeCliente;
-      this.deleteModalInstance?.show();
-    }
-  }
-
-  closeModalDelete() {
-    this.deleteModalInstance?.hide();
-    this.clienteParaDeletarId = null;
-    this.clienteParaDeletarNome = null;
-  }
-
   confirmarDelete(): void {
     if (!this.clienteParaDeletarId) return;
 
@@ -302,11 +302,11 @@ export class AppComponent {
       next: () => {
         this.notification.showSuccess('Cliente excluído com sucesso.');
         this.carregarClientesFiltrados();
-        this.closeModalDelete();
+        this.fecharModalDelete();
       },
       error: (err) => {
         this.notification.onApiError(err);
-        this.closeModalDelete()
+        this.fecharModalDelete()
       }
     });
   }
@@ -332,14 +332,39 @@ export class AppComponent {
       });
   }
 
+  exportarClientes() {
+    this.isLoading = true;
+    this.clienteService.exportarExcel().subscribe({
+      next: (blobData) => {
+        const a = document.createElement('a');
+        const objectUrl = window.URL.createObjectURL(blobData);
+        a.href = objectUrl;
+
+        a.download = 'relatorio_clientes.xlsx';
+        document.body.appendChild(a);
+        a.click();
+
+        window.URL.revokeObjectURL(objectUrl);
+        document.body.removeChild(a);
+
+        this.isLoading = false;
+        this.notification.showSuccess("Relatório exportado com sucesso");
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.notification.onApiError(err);
+      }
+    });
+  }
+
   //--------------------------------------------------------------------------------------------------------
   //chamadas da UI filtros e tabela
-  onFiltrarClick(): void {
+  filtrar(): void {
     this.paginaAtual = 0;
     this.carregarClientesFiltrados()
   }
 
-  onLimparClick(): void {
+  limparFiltro(): void {
     this.filtros = {nome: '', cidade: '', cpfCnpj: ''};
     this.paginaAtual = 0;
     this.carregarClientesFiltrados();

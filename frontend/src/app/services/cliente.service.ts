@@ -76,7 +76,7 @@ export class ClienteService {
   }
 
   exportarExcel(): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}cliente/export-excel`, {
+    return this.http.get(`${this.apiUrl}/export-excel`, {
       responseType: 'blob'
     })
   }

@@ -1,6 +1,7 @@
 <header class="header-home">
   <h2>Clientes e Endereços</h2>
 </header>
+
 <div class="actions-filter-container">
   <div class="actions-container">
     <div>
@@ -16,7 +17,7 @@
       </button>
     </div>
     <div>
-      <button type="button" class="btn btn-success">
+      <button type="button" class="btn btn-success" (click)="exportarClientes()">
         Exportar .xlsx
         <i class="bi bi-file-earmark-arrow-down"></i>
       </button>
@@ -35,7 +36,7 @@
         class="form-control"
         placeholder="Nome"
         [(ngModel)]="filtros.nome"
-        (keyup.enter)="onFiltrarClick()"
+        (keyup.enter)="filtrar()"
       >
     </div>
     <div>
@@ -44,7 +45,7 @@
         class="form-control"
         placeholder="CPF/CNPJ"
         [(ngModel)]="filtros.cpfCnpj"
-        (keyup.enter)="onFiltrarClick()"
+        (keyup.enter)="filtrar()"
       >
     </div>
     <div>
@@ -53,10 +54,10 @@
         class="form-control"
         placeholder="Cidade"
         [(ngModel)]="filtros.cidade"
-        (keyup.enter)="onFiltrarClick()"
+        (keyup.enter)="filtrar()"
       >
     </div>
-    <div class="filter-btn" (click)="onFiltrarClick()">
+    <div class="filter-btn" (click)="filtrar()">
       <i
         class="bi bi-funnel-fill text-primary h2"
         data-bs-toggle="tooltip"
@@ -64,7 +65,7 @@
       >
       </i>
     </div>
-    <div class="filter-btn" (click)="onLimparClick()">
+    <div class="filter-btn" (click)="limparFiltro()">
       <i
         class="bi bi-x-circle text-danger h2"
         data-bs-toggle="tooltip"
@@ -74,11 +75,12 @@
     </div>
   </div>
 </div>
+
 <div class="table-container card">
   <table class="table">
     <thead>
     <tr>
-      <th scope="col">#</th>
+      <th scope="col">ID</th>
       <th scope="col">Nome</th>
       <th scope="col">Email</th>
       <th scope="col">CPF/CNPJ</th>
@@ -106,7 +108,7 @@
           class="bi bi-trash-fill text-danger"
           data-bs-toggle="tooltip"
           title="Excluir"
-          (click)="openModalDelete(cliente.id, getNomeCliente(cliente))"
+          (click)="abrirModalDelete(cliente.id, getNomeCliente(cliente))"
         ></i>
         <i
           class="bi bi-pencil-fill text-primary"
@@ -137,6 +139,7 @@
     </tbody>
   </table>
 </div>
+
 <div class="pagination-container" *ngIf="!isLoading && totalPaginas > 0">
   <span class="total-registros">
     Total de registros {{ totalElementos }}
@@ -171,14 +174,14 @@
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
 
-      <form [formGroup]="clienteForm" (ngSubmit)="onSalvar()">
+      <form [formGroup]="clienteForm" (ngSubmit)="salvarCliente()">
 
         <!--MODAL HEADER-->
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="modalLabel">
             {{ isEditMode ? 'Editar Cliente' : 'Novo Cliente' }}
           </h1>
-          <button type="button" class="btn-close" (click)="fecharModal()" aria-label="Close"></button>
+          <button type="button" class="btn-close" (click)="fecharModalFormulario()" aria-label="Close"></button>
         </div>
 
         <!--MODAL BODY-->
@@ -384,7 +387,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
+          <button type="button" class="btn btn-secondary" (click)="fecharModalFormulario()">Cancelar</button>
           <button type="submit" class="btn btn-primary">
             {{ isEditMode ? 'Salvar Alterações' : 'Criar Cliente' }}
           </button>
@@ -403,7 +406,7 @@
           <i class="bi bi-exclamation-triangle-fill text-danger"></i>
           Confirmar Exclusão
         </h1>
-        <button type="button" class="btn-close" (click)="closeModalDelete()" aria-label="Close"></button>
+        <button type="button" class="btn-close" (click)="fecharModalDelete()" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <p>Tem certeza que deseja excluir o cliente
@@ -412,7 +415,7 @@
         <p class="text-danger fw-bold">Esta ação não pode ser desfeita.</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeModalDelete()">
+        <button type="button" class="btn btn-secondary" (click)="fecharModalDelete()">
           Cancelar
         </button>
         <button type="button" class="btn btn-danger" (click)="confirmarDelete()">
