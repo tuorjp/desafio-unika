@@ -41,6 +41,11 @@ export class AppComponent {
   modalInstance: Modal | null = null;
   isEditMode: boolean = false;
 
+  //modal de deleção
+  deleteModalInstance: Modal | null = null;
+  clienteParaDeletarId: number | null = null;
+  clienteParaDeletarNome: string | null = null;
+
   //construtor e dependências
   constructor(
     private clienteService: ClienteService,
@@ -61,9 +66,16 @@ export class AppComponent {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     tooltipTriggerList.forEach(el => new Tooltip(el));
 
+    //modal de formulário
     const modalEl = document.getElementById("clienteModal");
     if (modalEl) {
       this.modalInstance = new Modal(modalEl);
+    }
+
+    //modal de deleção
+    const deleteModalEl = document.getElementById("confirmDeleteModal");
+    if (deleteModalEl) {
+      this.deleteModalInstance = new Modal(deleteModalEl);
     }
   }
 
@@ -266,6 +278,37 @@ export class AppComponent {
           }
         });
     }
+  }
+
+  //deletar
+  openModalDelete(id: number | undefined, nomeCliente: string): void {
+    if (id) {
+      this.clienteParaDeletarId = id;
+      this.clienteParaDeletarNome = nomeCliente;
+      this.deleteModalInstance?.show();
+    }
+  }
+
+  closeModalDelete() {
+    this.deleteModalInstance?.hide();
+    this.clienteParaDeletarId = null;
+    this.clienteParaDeletarNome = null;
+  }
+
+  confirmarDelete(): void {
+    if (!this.clienteParaDeletarId) return;
+
+    this.clienteService.deletarCliente(this.clienteParaDeletarId).subscribe({
+      next: () => {
+        this.notification.showSuccess('Cliente excluído com sucesso.');
+        this.carregarClientesFiltrados();
+        this.closeModalDelete();
+      },
+      error: (err) => {
+        this.notification.onApiError(err);
+        this.closeModalDelete()
+      }
+    });
   }
 
   //listarClientes

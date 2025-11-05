@@ -80,4 +80,9 @@ export class ClienteService {
       responseType: 'blob'
     })
   }
+
+  deletarCliente(id: number): Observable<any>{
+    const params: HttpParams = new HttpParams().set('id', id);
+    return this.http.delete(`${this.apiUrl}/delete-client`, { params });
+  }
 }

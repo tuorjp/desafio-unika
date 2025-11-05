@@ -106,6 +106,7 @@
           class="bi bi-trash-fill text-danger"
           data-bs-toggle="tooltip"
           title="Excluir"
+          (click)="openModalDelete(cliente.id, getNomeCliente(cliente))"
         ></i>
         <i
           class="bi bi-pencil-fill text-primary"
@@ -165,7 +166,7 @@
   </div>
 </div>
 
-<!--Modal-->
+<!--modal de formulários-->
 <div class="modal fade" id="clienteModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
@@ -389,6 +390,35 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!--modal de confirmação de exclusão-->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="deleteModalLabel">
+          <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+          Confirmar Exclusão
+        </h1>
+        <button type="button" class="btn-close" (click)="closeModalDelete()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Tem certeza que deseja excluir o cliente
+          <strong>{{ clienteParaDeletarNome | titlecase }}</strong>?
+        </p>
+        <p class="text-danger fw-bold">Esta ação não pode ser desfeita.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModalDelete()">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" (click)="confirmarDelete()">
+          Sim, Excluir Cliente
+        </button>
+      </div>
     </div>
   </div>
 </div>

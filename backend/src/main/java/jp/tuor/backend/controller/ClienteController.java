@@ -131,6 +131,15 @@ public class ClienteController {
                 .body(montarBody(HttpStatus.OK.value(), "Usuário editado com sucesso."));
     }
 
+    @DeleteMapping("/delete-client")
+    public ResponseEntity<Object> deleteCliente(
+            @RequestParam(value = "id") Long id
+    ) {
+        this.clienteService.deletarCliente(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(this.montarBody(HttpStatus.OK.value(), "Cliente " + id + " deletado com sucesso"));
+    }
+
     //método auxiliar que monta bodies genéricos
     private Map<String, Object> montarBody(Object code, String message) {
         Map<String, Object> body = new HashMap<>();

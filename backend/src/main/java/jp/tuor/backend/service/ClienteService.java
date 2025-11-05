@@ -72,6 +72,8 @@ public class ClienteService {
 
         if (cliente != null) {
             this.clienteRepository.delete(cliente);
+        } else {
+            throw new ClienteNaoEncontradoException("Cliente com id: " + id + " não encontrado");
         }
     }
 
