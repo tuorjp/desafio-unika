@@ -26,7 +26,16 @@ export class NotificationService {
   }
 
   public onApiError(error: any) {
-    const errorMessage = error?.error?.message || error?.message || 'Não foi possível completar a operação.';
+    let errorMessage;
+
+    if(error?.error?.message || error?.message) {
+      errorMessage = error?.error?.message || error?.message || 'Não foi possível completar a operação.';
+    }
+
+    if(error?.error && error?.error?.erros && error?.error?.erros?.length > 0) {
+      errorMessage = error?.error?.erros.join("\n");
+    }
+
     this.showError(errorMessage);
   }
 

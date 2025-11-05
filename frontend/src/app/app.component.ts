@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, ElementRef, inject, ViewChild} from '@angular/core';
 import {CommonModule, DatePipe} from "@angular/common";
 import {ClienteService} from "./services/cliente.service";
 import {ClienteFiltros} from "./models/cliente-filtros.model";
@@ -45,6 +45,9 @@ export class AppComponent {
   deleteModalInstance: Modal | null = null;
   clienteParaDeletarId: number | null = null;
   clienteParaDeletarNome: string | null = null;
+
+  //elemento para seleção de arquivos no front
+  @ViewChild('fileInput') fileInput!: ElementRef
 
   //construtor e dependências
   constructor(
@@ -332,6 +335,7 @@ export class AppComponent {
       });
   }
 
+  //cria excel com clientes do banco
   exportarClientes() {
     this.isLoading = true;
     this.clienteService.exportarExcel().subscribe({
@@ -355,6 +359,11 @@ export class AppComponent {
         this.notification.onApiError(err);
       }
     });
+  }
+
+  importarClientes() {
+    this.fileInput.nativeElement.value = null;
+    this.fileInput.nativeElement.click()
   }
 
   //--------------------------------------------------------------------------------------------------------
@@ -382,6 +391,41 @@ export class AppComponent {
       this.paginaAtual--;
       this.carregarClientesFiltrados();
     }
+  }
+
+  arquivoSelecionado(event: any) {
+    const file: File | null = event.target.files?.[0] || null;
+
+    if(!file) {
+      return;
+    }
+
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', //.xlsx
+      'application/vnd.ms-excel' //.xls
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      this.notification.showWarning('Por favor, selecione um arquivo Excel (.xlsx ou .xls).');
+      return;
+    }
+
+    this.isLoading = true;
+    this.notification.showInfo('Iniciando importação...');
+
+    this.clienteService.importarExcel(file).subscribe({
+      next: (response) => {
+        this.notification.showSuccess('Arquivo importado com sucesso');
+        this.carregarClientesFiltrados();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.notification.onApiError(err);
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   //--------------------------------------------------------------------------------------------------------
