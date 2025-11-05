@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {CommonModule, DatePipe} from "@angular/common";
 import {ClienteService} from "./services/cliente.service";
 import {ClienteFiltros} from "./models/cliente-filtros.model";
@@ -7,6 +7,7 @@ import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Val
 import {Cliente} from "./models/cliente.model";
 import {EnderecoDto} from "./dto/endereco.dto";
 import {ClienteDTO} from "./dto/cliente.dto";
+import {NotificationService} from "./shared/notification/notification.service";
 
 @Component({
   selector: 'app-root',
@@ -21,6 +22,8 @@ import {ClienteDTO} from "./dto/cliente.dto";
   styleUrl: './app.component.css'
 })
 export class AppComponent {
+  //notificação
+  private readonly notification = inject(NotificationService);
 
   //estado do componente
   listaClientes: Cliente[] = [];
@@ -107,7 +110,7 @@ export class AppComponent {
     this.enderecosFormArray.push(novoEndereco);
   }
 
-  removerEndereco(index: number){
+  removerEndereco(index: number) {
     this.enderecosFormArray.removeAt(index)
   }
 
@@ -137,7 +140,7 @@ export class AppComponent {
       dataCriacao: dataCriacaoFormatada
     });
 
-    if(cliente.enderecos && cliente.enderecos.length > 0) {
+    if (cliente.enderecos && cliente.enderecos.length > 0) {
       cliente.enderecos.forEach((element) => {
         this.enderecosFormArray.push(this.criarEnderecoFormGroup(element as EnderecoDto));
       });
@@ -152,15 +155,15 @@ export class AppComponent {
     this.modalInstance?.hide();
   }
 
+  //funções http, chamadas ao service
+  //criar/editar cliente
   onSalvar() {
-    if(this.clienteForm.invalid) {
-      //TODO
-      console.error("Formulário inválido");
+    if (this.clienteForm.invalid) {
       return;
     }
 
     const clienteDto: ClienteDTO = this.clienteForm.value;
-    if(this.isEditMode) {
+    if (this.isEditMode) {
       this.clienteService.editar(clienteDto)
         .subscribe({
           next: (res) => {
@@ -176,9 +179,9 @@ export class AppComponent {
       this.clienteService.criar(clienteDto)
         .subscribe({
           next: (res) => {
-            console.log("Cliente criado")
             this.fecharModal();
             this.carregarClientesFiltrados();
+            this.notification.showSuccess("Cliente criado com sucesso!")
           },
           error: (err) => {
             console.error("Erro ao criar cliente ", err)
@@ -187,7 +190,7 @@ export class AppComponent {
     }
   }
 
-  //funções http, chamadas ao service
+  //listarClientes
   carregarClientesFiltrados(): void {
     this.isLoading = true;
     this.listaClientes = [];
@@ -198,9 +201,10 @@ export class AppComponent {
           this.listaClientes = pagina.content;
           this.totalPaginas = pagina.totalPages;
           this.totalElementos = pagina.totalElements;
+          this.notification.showSuccess("Clientes carregados!")
         },
         error: (err) => {
-          console.error("Erro na listagem inicial: ", err)
+          this.notification.showError(err?.message)
         },
         complete: () => {
           this.isLoading = false

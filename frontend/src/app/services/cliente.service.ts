@@ -29,20 +29,20 @@ export class ClienteService {
   }
 
   listarFiltrado({nome, cpfCnpj, cidade}: ClienteFiltros, page: number, size: number): Observable<Page<Cliente>> {
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
 
     if(nome) {
-      params.set('nome', nome);
+      params = params.set('nome', nome);
     }
 
     if(cpfCnpj) {
-      params.set('cpfCnpj', cpfCnpj)
+      params = params.set('cpfCnpj', cpfCnpj)
     }
 
     if(cidade) {
-      params.set('cidade', cidade)
+      params = params.set('cidade', cidade)
     }
 
     return this.http.get<Page<Cliente>>(`${this.apiUrl}/list-filter`, { params });
