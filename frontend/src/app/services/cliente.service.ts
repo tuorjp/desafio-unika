@@ -14,18 +14,19 @@ import {TipoPessoa} from "../enum/tipo-pessoa.enum";
 export class ClienteService {
   private readonly apiUrl = 'http://localhost:8080/api/cliente'
 
-  constructor(private http: HttpClient){}
+  constructor(private http: HttpClient) {
+  }
 
   listarTodos(): Observable<Cliente[]> {
     return this.http.get<Cliente[]>(`${this.apiUrl}/list-all`);
   }
 
-  listarPaginado(page: number, size: number): Observable<Page<Cliente>>{
+  listarPaginado(page: number, size: number): Observable<Page<Cliente>> {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
 
-    return this.http.get<Page<Cliente>>(`${this.apiUrl}/list-page`, { params });
+    return this.http.get<Page<Cliente>>(`${this.apiUrl}/list-page`, {params});
   }
 
   listarFiltrado({nome, cpfCnpj, cidade}: ClienteFiltros, page: number, size: number): Observable<Page<Cliente>> {
@@ -33,22 +34,22 @@ export class ClienteService {
       .set('page', page.toString())
       .set('size', size.toString());
 
-    if(nome) {
+    if (nome) {
       params = params.set('nome', nome);
     }
 
-    if(cpfCnpj) {
+    if (cpfCnpj) {
       params = params.set('cpfCnpj', cpfCnpj)
     }
 
-    if(cidade) {
+    if (cidade) {
       params = params.set('cidade', cidade)
     }
 
-    return this.http.get<Page<Cliente>>(`${this.apiUrl}/list-filter`, { params });
+    return this.http.get<Page<Cliente>>(`${this.apiUrl}/list-filter`, {params});
   }
 
-  buscarResumoPorCidade(): Observable<ResumoClientesPorCidade[]>{
+  buscarResumoPorCidade(): Observable<ResumoClientesPorCidade[]> {
     return this.http.get<ResumoClientesPorCidade[]>(`${this.apiUrl}/summary-city`);
   }
 
@@ -57,7 +58,7 @@ export class ClienteService {
       .set('tipo', tipo)
       .set('estado', estado);
 
-    return this.http.get<Cliente[]>(`${this.apiUrl}/search-by-state`, { params });
+    return this.http.get<Cliente[]>(`${this.apiUrl}/search-by-state`, {params});
   }
 
   criar(cliente: ClienteDTO): Observable<any> {
@@ -81,8 +82,20 @@ export class ClienteService {
     })
   }
 
-  deletarCliente(id: number): Observable<any>{
+  exportarPDF(id: number | null = null): Observable<Blob> {
+    if(id != null) {
+      return this.http.get(`${this.apiUrl}/report/pdf/${id}`, {
+        responseType: "blob"
+      });
+    }
+
+    return this.http.get(`${this.apiUrl}/report/pdf/geral`, {
+      responseType: "blob"
+    });
+  }
+
+  deletarCliente(id: number): Observable<any> {
     const params: HttpParams = new HttpParams().set('id', id);
-    return this.http.delete(`${this.apiUrl}/delete-client`, { params });
+    return this.http.delete(`${this.apiUrl}/delete-client`, {params});
   }
 }

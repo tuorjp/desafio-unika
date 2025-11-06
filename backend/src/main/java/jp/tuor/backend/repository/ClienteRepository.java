@@ -36,4 +36,6 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long>, JpaSpec
             nativeQuery = true
     )
     List<ResumoClientesPorCidade> getResumoClientesPorCidade();
+
+    Long id(Long id);
 }

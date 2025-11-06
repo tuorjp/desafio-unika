@@ -366,34 +366,7 @@ export class AppComponent {
     this.fileInput.nativeElement.click()
   }
 
-  //--------------------------------------------------------------------------------------------------------
-  //chamadas da UI filtros e tabela
-  filtrar(): void {
-    this.paginaAtual = 0;
-    this.carregarClientesFiltrados()
-  }
-
-  limparFiltro(): void {
-    this.filtros = {nome: '', cidade: '', cpfCnpj: ''};
-    this.paginaAtual = 0;
-    this.carregarClientesFiltrados();
-  }
-
-  proximaPagina(): void {
-    if (this.paginaAtual < this.totalPaginas - 1) {
-      this.paginaAtual++;
-      this.carregarClientesFiltrados();
-    }
-  }
-
-  paginaAnterior(): void {
-    if (this.paginaAtual > 0) {
-      this.paginaAtual--;
-      this.carregarClientesFiltrados();
-    }
-  }
-
-  arquivoSelecionado(event: any) {
+  arquivoSelecionadoImportacaoXLSX(event: any) {
     const file: File | null = event.target.files?.[0] || null;
 
     if(!file) {
@@ -426,6 +399,58 @@ export class AppComponent {
         this.isLoading = false;
       }
     });
+  }
+
+  exportarClientesPDF(id: number | null = null) {
+    this.isLoading = true;
+    this.clienteService.exportarPDF(id).subscribe({
+      next: (res) => {
+        const a = document.createElement('a');
+        const objectUrl = window.URL.createObjectURL(res);
+        a.href = objectUrl;
+
+        a.download = 'relatorio_clientes.pdf';
+        document.body.appendChild(a);
+        a.click();
+
+        window.URL.revokeObjectURL(objectUrl);
+        document.body.removeChild(a);
+
+        this.isLoading = false;
+        this.notification.showSuccess("Relatório PDF exportado com sucesso");
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.notification.onApiError(err);
+      }
+    });
+  }
+
+  //--------------------------------------------------------------------------------------------------------
+  //chamadas da UI filtros e tabela
+  filtrar(): void {
+    this.paginaAtual = 0;
+    this.carregarClientesFiltrados()
+  }
+
+  limparFiltro(): void {
+    this.filtros = {nome: '', cidade: '', cpfCnpj: ''};
+    this.paginaAtual = 0;
+    this.carregarClientesFiltrados();
+  }
+
+  proximaPagina(): void {
+    if (this.paginaAtual < this.totalPaginas - 1) {
+      this.paginaAtual++;
+      this.carregarClientesFiltrados();
+    }
+  }
+
+  paginaAnterior(): void {
+    if (this.paginaAtual > 0) {
+      this.paginaAtual--;
+      this.carregarClientesFiltrados();
+    }
   }
 
   //--------------------------------------------------------------------------------------------------------

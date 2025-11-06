@@ -18,7 +18,7 @@
       <input
         type="file"
         #fileInput
-        (change)="arquivoSelecionado($event)"
+        (change)="arquivoSelecionadoImportacaoXLSX($event)"
         accept=".xlsx, .xls"
         style="display: none;"
       />
@@ -30,7 +30,7 @@
       </button>
     </div>
     <div>
-      <button type="button" class="btn btn-danger">
+      <button type="button" class="btn btn-danger" (click)="exportarClientesPDF()">
         Exportar PDF
         <i class="bi bi-filetype-pdf"></i>
       </button>
@@ -127,6 +127,7 @@
           class="bi bi-download"
           data-bs-toggle="tooltip"
           title="Baixar Relatório"
+          (click)="exportarClientesPDF(cliente.id)"
         ></i>
       </td>
     </tr>
