@@ -324,6 +324,35 @@
                 </div>
 
                 <div class="row g-3 mt-2">
+                  <div class="col-md-3">
+                    <label class="form-label">CEP *</label>
+
+                    <div class="input-group">
+                      <input
+                        mask="00000-000"
+                        type="text"
+                        class="form-control"
+                        formControlName="cep"
+                        [class.is-invalid]="endGroup.get('cep')?.invalid && (endGroup.get('cep')?.dirty || endGroup.get('cep')?.touched)"
+                      >
+                      <button
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        (click)="buscarCep(i)"
+                        [disabled]="endGroup.get('cep')?.invalid || isLoading"
+                      >
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                    <div *ngIf="endGroup?.get('cep')?.invalid && (endGroup?.get('cep')?.dirty || endGroup?.get('cep')?.touched)" class="invalid-feedback d-block">
+                      <div *ngIf="endGroup?.get('cep')?.errors?.['required']">
+                        CEP obrigatório.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-3 mt-2">
                   <div class="col-md-6">
                     <label class="form-label">Logradouro *</label>
                     <input type="text" class="form-control" formControlName="logradouro"
@@ -358,18 +387,6 @@
                 </div>
 
                 <div class="row g-3 mt-1">
-                  <div class="col-md-3">
-                    <label class="form-label">CEP *</label>
-                    <input mask="00000-000" type="text" class="form-control" formControlName="cep"
-                           [class.is-invalid]="endGroup.get('cep')?.invalid && (endGroup.get('cep')?.dirty || endGroup.get('cep')?.touched)">
-                    <div
-                      *ngIf="endGroup?.get('cep')?.invalid && (endGroup?.get('cep')?.dirty || endGroup?.get('cep')?.touched)"
-                      class="invalid-feedback">
-                      <div *ngIf="endGroup?.get('cep')?.errors?.['required']">
-                        CEP obrigatório.
-                      </div>
-                    </div>
-                  </div>
                   <div class="col-md-3">
                     <label class="form-label">Bairro *</label>
                     <input type="text" class="form-control" formControlName="bairro"

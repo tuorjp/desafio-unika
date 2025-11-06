@@ -10,6 +10,7 @@ import {ClienteDTO} from "./dto/cliente.dto";
 import {NotificationService} from "./shared/notification/notification.service";
 import {NgxMaskDirective} from "ngx-mask";
 import {snOuNumberValidator} from "./shared/validators/custom-validators";
+import {HttpClient} from "@angular/common/http";
 
 @Component({
   selector: 'app-root',
@@ -53,7 +54,8 @@ export class AppComponent {
   constructor(
     private clienteService: ClienteService,
     private datePipe: DatePipe,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private http: HttpClient
   ) {
   }
 
@@ -369,7 +371,7 @@ export class AppComponent {
   arquivoSelecionadoImportacaoXLSX(event: any) {
     const file: File | null = event.target.files?.[0] || null;
 
-    if(!file) {
+    if (!file) {
       return;
     }
 
@@ -507,7 +509,7 @@ export class AppComponent {
   }
 
   private getCleanFormValue(): ClienteDTO {
-    const formValue = { ...this.clienteForm.value } as ClienteDTO;
+    const formValue = {...this.clienteForm.value} as ClienteDTO;
 
     const cleanDTO: any = {
       id: formValue.id,
@@ -516,7 +518,7 @@ export class AppComponent {
       ativo: formValue.ativo,
     }
 
-    if(formValue.tipoPessoa === 'FISICA') {
+    if (formValue.tipoPessoa === 'FISICA') {
       cleanDTO.nome = formValue.nome;
       cleanDTO.dataNascimento = formValue.dataNascimento;
       cleanDTO.cpf = this.cleanString(formValue.cpf);
@@ -526,7 +528,7 @@ export class AppComponent {
       cleanDTO.cnpj = null;
       cleanDTO.inscricaoEstadual = null;
       cleanDTO.dataCriacao = null;
-    } else if(formValue.tipoPessoa === 'JURIDICA') {
+    } else if (formValue.tipoPessoa === 'JURIDICA') {
       cleanDTO.razaoSocial = formValue.razaoSocial;
       cleanDTO.dataCriacao = formValue.dataCriacao;
       cleanDTO.cnpj = this.cleanString(formValue.cnpj);
@@ -538,9 +540,9 @@ export class AppComponent {
       cleanDTO.rg = null;
     }
 
-    if(formValue.enderecos && formValue.enderecos.length > 0) {
+    if (formValue.enderecos && formValue.enderecos.length > 0) {
       cleanDTO.enderecos = formValue.enderecos.map(end => {
-        const cleanEnd = { ...end };
+        const cleanEnd = {...end};
         cleanEnd.cep = this.cleanString(cleanEnd.cep);
         return cleanEnd;
       });
@@ -552,10 +554,51 @@ export class AppComponent {
   }
 
   private cleanString(value: string | null | undefined): string {
-    if(!value) {
-      return  '';
+    if (!value) {
+      return '';
     }
 
     return value.replace(/\D/g, '');
+  }
+
+  //--------------------------------------------------------------------------------------------------------
+  //auxiliares API
+  buscarCep(index: number): void {
+    const enderecoGroup = this.enderecosFormArray.at(index) as FormGroup;
+
+    const cep = this.cleanString(enderecoGroup.get("cep")?.value);
+
+    if (!cep || cep.length !== 8) {
+      this.notification.showWarning("Digite um CEP válido");
+      return;
+    }
+
+    this.isLoading = true;
+
+    this.http.get<any>(`https://viacep.com.br/ws/${cep}/json`).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+
+        if(res.erro) {
+          this.notification.showError('CEP não encontrado.');
+          return;
+        }
+
+        enderecoGroup.patchValue({
+          logradouro: res.logradouro,
+          bairro: res.bairro,
+          cidade: res.localidade,
+          estado: res.uf,
+          complemento: res.complemento
+        });
+
+        this.notification.showSuccess("Endereço preenchido.");
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.notification.showError("Erro ao consultar o CEP. Verifique a conexão.");
+        console.error(err);
+      }
+    });
   }
 }
