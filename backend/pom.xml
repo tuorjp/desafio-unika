@@ -112,6 +112,14 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.8.13</version>
         </dependency>
+
+        <!--CAELUM STELLA CORE (validação de CPF e CNPJ)-->
+        <!-- https://mvnrepository.com/artifact/br.com.caelum.stella/caelum-stella-core -->
+        <dependency>
+            <groupId>br.com.caelum.stella</groupId>
+            <artifactId>caelum-stella-core</artifactId>
+            <version>2.2.2</version>
+        </dependency>
 	</dependencies>
 
 	<build>

@@ -1,5 +1,8 @@
 package jp.tuor.backend.utils;
 
+import br.com.caelum.stella.validation.CNPJValidator;
+import br.com.caelum.stella.validation.CPFValidator;
+import br.com.caelum.stella.validation.InvalidStateException;
 import jp.tuor.backend.model.dto.ClienteDTO;
 import jp.tuor.backend.model.dto.EnderecoDTO;
 import jp.tuor.backend.model.enums.TipoPessoa;
@@ -14,6 +17,46 @@ import java.util.List;
 
 @Component
 public class ValidadorUtil {
+    private String cleanDoc(String doc) {
+        if(doc == null) {
+            return null;
+        }
+
+        return doc.replaceAll("[^\\d]", "");
+    }
+
+    public boolean isValidCPF(String cpf) {
+        String cleanDoc = this.cleanDoc(cpf);
+
+        if(cleanDoc.trim().isEmpty()) {
+            return false;
+        }
+
+        CPFValidator validator = new CPFValidator();
+        try {
+            validator.assertValid(cleanDoc);
+            return true;
+        } catch (InvalidStateException e) {
+            return false;
+        }
+    }
+
+    public boolean isValidCNPJ(String cnpj) {
+        String cleanDoc = this.cleanDoc(cnpj);
+
+        if(cleanDoc.trim().isEmpty()) {
+            return false;
+        }
+
+        CNPJValidator validator = new CNPJValidator();
+        try {
+            validator.assertValid(cleanDoc);
+            return true;
+        } catch (InvalidStateException e) {
+            return false;
+        }
+    }
+
     public void validarCamposObrigatorios(ClienteDTO clienteDTO) {
         List<String> erros = new ArrayList<>();
         TipoPessoa tipoPessoa = clienteDTO.getTipoPessoa();
@@ -54,6 +97,13 @@ public class ValidadorUtil {
                             erros.add("O campo '" + nomeCampo + "' é obrigatório.");
                         } else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
                             erros.add("O campo '" + nomeCampo + "' não pode estar em branco.");
+                        } else if(valorCampo instanceof String) {
+                            String valorStr = (String) valorCampo;
+                            if(nomeCampo.equals("cpf") && !this.isValidCPF(valorStr)) {
+                                erros.add("'CPF " + valorStr + " é inválido.");
+                            } else if(nomeCampo.equals("cnpj") && !this.isValidCNPJ(valorStr)){
+                                erros.add("'CNPJ " + valorStr + " é inválido.");
+                            }
                         }
                     }
 
