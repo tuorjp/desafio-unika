@@ -7,6 +7,8 @@
             <div class="actions-container">
                 <button type="button" class="btn btn-primary" disabled>Novo <i class="bi bi-plus-lg"></i></button>
                 <button type="button" class="btn btn-success" disabled>Importar .xlsx <i class="bi bi-file-earmark-arrow-up"></i></button>
+                <button type="button" class="btn btn-success" disabled>Exportar .xlsx <i class="bi bi-file-earmark-arrow-down"></i></button>
+                <button type="button" class="btn btn-danger" disabled>Exportar .pdf <i class="bi bi-filetype-pdf"></i></button>
             </div>
             <div class="filters-container">
                 <div>
@@ -46,9 +48,9 @@
                         <td><span wicket:id="endereco"></span></td>
                         <td><span wicket:id="status" class="badge"></span></td>
                         <td class="table-actions">
-                            <i class="bi bi-trash-fill text-black-50"></i>
-                            <i class="bi bi-pencil-fill text-black-50"></i>
-                            <i class="bi bi-download text-black-50"></i>
+                            <i class="bi bi-trash-fill text-danger"></i>
+                            <i class="bi bi-pencil-fill text-primary"></i>
+                            <i class="bi bi-download text-danger"></i>
                         </td>
                     </tr>
                     </tbody>
