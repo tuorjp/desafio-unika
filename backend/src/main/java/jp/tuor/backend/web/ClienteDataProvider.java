@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -54,5 +53,11 @@ public class ClienteDataProvider extends SortableDataProvider<Cliente, String> {
                 return clienteService.buscaClientePorId(clienteId);
             }
         };
+    }
+
+    @Override
+    public void detach() {
+        super.detach();
+        this.lastPageCache = null;
     }
 }

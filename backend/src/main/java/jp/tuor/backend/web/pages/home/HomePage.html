@@ -3,22 +3,37 @@
             <h2 wicket:id="titulo"></h2>
         </header>
 
+        <div wicket:id="feedbackPanel" class="container-fluid my-2"></div>
+
         <div class="actions-filter-container">
             <div class="actions-container">
-                <button type="button" class="btn btn-primary" disabled>Novo <i class="bi bi-plus-lg"></i></button>
-                <button type="button" class="btn btn-success" disabled>Importar .xlsx <i class="bi bi-file-earmark-arrow-up"></i></button>
-                <button type="button" class="btn btn-success" disabled>Exportar .xlsx <i class="bi bi-file-earmark-arrow-down"></i></button>
-                <button type="button" class="btn btn-danger" disabled>Exportar .pdf <i class="bi bi-filetype-pdf"></i></button>
+                <div>
+                    <button type="button" class="btn btn-primary">Novo <i class="bi bi-plus-lg"></i></button>
+                </div>
+                <div class="card p-4">
+                    <form wicket:id="importForm" class="d-flex flex-column gap-2">
+                        <input type="file" wicket:id="fileUpload" class="form-control form-control-sm"/>
+                        <button type="submit" class="btn btn-success" wicket:id="importSubmitButton">
+                            Importar .xlsx <i class="bi bi-file-earmark-arrow-up"></i>
+                        </button>
+                    </form>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-success">Exportar .xlsx <i class="bi bi-file-earmark-arrow-down"></i></button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-danger">Exportar .pdf <i class="bi bi-filetype-pdf"></i></button>
+                </div>
             </div>
             <div class="filters-container">
                 <div>
-                    <input type="text" class="form-control" placeholder="Nome" disabled>
+                    <input type="text" class="form-control" placeholder="Nome">
                 </div>
                 <div>
-                    <input type="text" class="form-control" placeholder="Cidade" disabled>
+                    <input type="text" class="form-control" placeholder="Cidade">
                 </div>
                 <div>
-                    <input type="text" class="form-control" placeholder="CPF/CNPJ" disabled>
+                    <input type="text" class="form-control" placeholder="CPF/CNPJ">
                 </div>
             </div>
         </div>

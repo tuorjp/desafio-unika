@@ -4,32 +4,50 @@ import com.giffing.wicket.spring.boot.context.scan.WicketHomePage;
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.Endereco;
 import jp.tuor.backend.model.enums.TipoPessoa;
+import jp.tuor.backend.service.ClienteExcelImportService;
 import jp.tuor.backend.service.ClienteService;
 import jp.tuor.backend.web.ClienteDataProvider;
 import jp.tuor.backend.web.pages.BasePage;
+import jp.tuor.backend.web.utils.WicketMultipartFile;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @WicketHomePage
 public class HomePage extends BasePage {
     @SpringBean
     private ClienteService clienteService;
+    @SpringBean
+    private ClienteExcelImportService importService;
+
     private final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
+    private final WebMarkupContainer tableContainer;
+    private final WebMarkupContainer emptyMessage;
+    private final FeedbackPanel feedbackPanel;
+    private final SortableDataProvider<Cliente, String> dataProvider;
 
     //--------------------------------------------------------------------------------------------------------
     //métodos de renderização e configuração
@@ -39,14 +57,72 @@ public class HomePage extends BasePage {
         String str = "Clientes";
         add(new Label("titulo", str));
 
+        feedbackPanel = new FeedbackPanel("feedbackPanel");
+        feedbackPanel.setOutputMarkupId(true);
+        add(feedbackPanel);
+
         //date provider da tabela
-        SortableDataProvider<Cliente, String> dataProvider = new ClienteDataProvider(clienteService);
+        dataProvider = new ClienteDataProvider(clienteService);
 
         //container da tabela e paginação
-        WebMarkupContainer tableContainer = new WebMarkupContainer("tableContainer");
+        tableContainer = new WebMarkupContainer("tableContainer");
+        tableContainer.setOutputMarkupId(true);
+        tableContainer.setOutputMarkupPlaceholderTag(true);
         add(tableContainer);
 
         //data view para a tabela
+        DataView<Cliente> dataView = getClienteDataView(dataProvider);
+        tableContainer.add(dataView);
+
+        //paging navigator
+        tableContainer.add(new PagingNavigator("pagingNavigator", dataView));
+
+        //label total de registros
+        IModel<String> totalMsgModel = new LoadableDetachableModel<String>() {
+            @Override
+            protected String load() {
+                long total = dataProvider.size();
+                return "Total de registros: " + total;
+            }
+        };
+        tableContainer.add(new Label("totalRegistros", totalMsgModel));
+
+        //configurações de visibilidade
+        long totalItems = dataProvider.size();
+        tableContainer.setVisible(totalItems > 0);
+
+        emptyMessage = new WebMarkupContainer("emptyMessage");
+        emptyMessage.setOutputMarkupId(true);
+        emptyMessage.setOutputMarkupPlaceholderTag(true);
+        emptyMessage.setVisible(totalItems == 0);
+        add(emptyMessage);
+        atualizarVisibilidadeTabela();
+
+        //importação do arquivo .xlsx
+        //cria campo de upload
+        final FileUploadField fileUploadField = new FileUploadField("fileUpload");
+        //cria form
+        Form<?> importForm = new Form<>("importForm");
+        importForm.setMultiPart(true);
+        importForm.add(fileUploadField);
+
+        //botão submit com ajax
+        criarBotaoImportSubmitAjax(importForm, fileUploadField);
+
+        add(importForm);
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.render(CssHeaderItem.forReference(new PackageResourceReference(HomePage.class, "HomePage.css")));
+    }
+
+    //--------------------------------------------------------------------------------------------------------
+    //métodos auxiliares resgatar/tratar dados
+
+    private DataView<Cliente> getClienteDataView(SortableDataProvider<Cliente, String> dataProvider) {
         DataView<Cliente> dataView = new DataView<Cliente>("clienteList", dataProvider) {
             @Override
             protected void populateItem(Item<Cliente> item) {
@@ -67,39 +143,8 @@ public class HomePage extends BasePage {
         };
 
         dataView.setItemsPerPage(10);
-        tableContainer.add(dataView);
-
-        //paging navigator
-        tableContainer.add(new PagingNavigator("pagingNavigator", dataView));
-
-        //label total de registros
-        IModel<String> totalMsgModel = new LoadableDetachableModel<String>() {
-            @Override
-            protected String load() {
-                long total = dataProvider.size();
-                return "Total de registros: " + total;
-            }
-        };
-        tableContainer.add(new Label("totalRegistros", totalMsgModel));
-
-        //configurações de visibilidade
-        long totalItems = dataProvider.size();
-        tableContainer.setVisible(totalItems > 0);
-
-        WebMarkupContainer emptyMessage = new WebMarkupContainer("emptyMessage");
-        emptyMessage.setVisible(totalItems == 0);
-        add(emptyMessage);
+        return dataView;
     }
-
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        response.render(CssHeaderItem.forReference(new PackageResourceReference(HomePage.class, "HomePage.css")));
-    }
-
-    //--------------------------------------------------------------------------------------------------------
-    //métodos auxiliares
 
     private String getNomeCliente(Cliente cliente) {
         String nome = cliente.getTipoPessoa() == TipoPessoa.FISICA ? cliente.getNome() : cliente.getRazaoSocial();
@@ -139,5 +184,61 @@ public class HomePage extends BasePage {
             return "N/A";
         }
         return doc;
+    }
+
+    //--------------------------------------------------------------------------------------------------------
+    //métodos auxiliares UI
+    private void atualizarVisibilidadeTabela() {
+        long totalItems = dataProvider.size();
+        tableContainer.setVisible(totalItems > 0);
+        emptyMessage.setVisible(totalItems == 0);
+    }
+
+    private void criarBotaoImportSubmitAjax(Form<?> importForm, FileUploadField fileUploadField) {
+        importForm.add(new AjaxButton("importSubmitButton", importForm) {
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                final FileUpload fileUpload = fileUploadField.getFileUpload();
+
+                if (fileUpload == null) {
+                    error("Por favor, selecione um arquivo .xlsx para importar.");
+                    target.add(feedbackPanel);
+                    return;
+                }
+
+                MultipartFile multipartFile = new WicketMultipartFile(fileUpload);
+
+                try {
+                    Map<String, Object> resultado = importService.importarClientesExcel(multipartFile);
+
+                    Boolean sucesso = (Boolean) resultado.getOrDefault("sucesso", false);
+                    if(sucesso) {
+                        Integer criados = (Integer) resultado.get("clientesCriados");
+                        success("Importação concluída. " + criados + " clientes salvos.");
+
+                        dataProvider.detach();
+                        atualizarVisibilidadeTabela();
+                        target.add(tableContainer, emptyMessage);
+                    } else {
+                        List<String> erros = (List<String>) resultado.get("erros");
+                        if(erros != null && !erros.isEmpty()) {
+                            erros.forEach(this::error);
+                        } else {
+                            error("Importação falhou.");
+                        }
+                    }
+                } catch (IOException e) {
+                    error("Erro ao ler arquivo " + e.getMessage());
+                } catch (Exception e) {
+                    error("Erro inesperado " + e.getMessage());
+                }
+                target.add(feedbackPanel);
+            }
+
+            protected void onError(AjaxRequestTarget target) {
+                //caso o wicket der um erro (ex arquivo muito grande)
+                target.add(feedbackPanel);
+            }
+        });
     }
 }
