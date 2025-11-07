@@ -2,13 +2,12 @@ package jp.tuor.backend.web.pages.home;
 
 import com.giffing.wicket.spring.boot.context.scan.WicketHomePage;
 import jp.tuor.backend.model.Cliente;
-import jp.tuor.backend.model.Endereco;
-import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.service.ClienteExcelImportService;
 import jp.tuor.backend.service.ClienteService;
+import jp.tuor.backend.utils.StringUtils;
+import jp.tuor.backend.utils.WicketMultipartFile;
 import jp.tuor.backend.web.ClienteDataProvider;
 import jp.tuor.backend.web.pages.BasePage;
-import jp.tuor.backend.web.utils.WicketMultipartFile;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -31,8 +30,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +40,6 @@ public class HomePage extends BasePage {
     @SpringBean
     private ClienteExcelImportService importService;
 
-    private final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
     private final WebMarkupContainer tableContainer;
     private final WebMarkupContainer emptyMessage;
     private final FeedbackPanel feedbackPanel;
@@ -129,11 +125,11 @@ public class HomePage extends BasePage {
                 Cliente cliente = item.getModelObject();
 
                 item.add(new Label("id", cliente.getId()));
-                item.add(new Label("nome", getNomeCliente(cliente)));
+                item.add(new Label("nome", StringUtils.getNomeCliente(cliente)));
                 item.add(new Label("email", cliente.getEmail() != null? cliente.getEmail() : "n/a" ));
-                item.add(new Label("documento", getDocumentoCliente(cliente)));
-                item.add(new Label("data", getDataCliente(cliente)));
-                item.add(new Label("endereco", getEnderecoPrincipal(cliente.getEnderecos())));
+                item.add(new Label("documento", StringUtils.getDocumentoCliente(cliente)));
+                item.add(new Label("data", StringUtils.getDataCliente(cliente)));
+                item.add(new Label("endereco", StringUtils.getEnderecoPrincipal(cliente.getEnderecos())));
 
                 //badge do status
                 Label statusLabel = new Label("status", cliente.isAtivo() ? "Ativo" : "Inativo");
@@ -144,46 +140,6 @@ public class HomePage extends BasePage {
 
         dataView.setItemsPerPage(10);
         return dataView;
-    }
-
-    private String getNomeCliente(Cliente cliente) {
-        String nome = cliente.getTipoPessoa() == TipoPessoa.FISICA ? cliente.getNome() : cliente.getRazaoSocial();
-        return nome != null ? nome : "";
-    }
-
-    private String getDataCliente(Cliente cliente) {
-        Date data = cliente.getTipoPessoa() == TipoPessoa.FISICA ? cliente.getDataNascimento() : cliente.getDataCriacao();
-        return data != null ? DATE_FORMAT.format(data) : "N/A";
-    }
-
-    private String getEnderecoPrincipal(List<Endereco> enderecos) {
-        if (enderecos == null || enderecos.isEmpty()) {
-            return "N/A";
-        }
-
-        Endereco principal = enderecos.stream()
-                .filter(Endereco::isEnderecoPrincipal)
-                .findFirst()
-                .orElse(null);
-
-        if (principal == null) {
-            principal = enderecos.get(0);
-        }
-
-        return String.format("%s, %s, %s-%s",
-                principal.getLogradouro(),
-                principal.getNumero(),
-                principal.getCidade(),
-                principal.getEstado()
-        );
-    }
-
-    private String getDocumentoCliente(Cliente cliente) {
-        String doc = cliente.getTipoPessoa() == TipoPessoa.FISICA ? cliente.getCpf() : cliente.getCnpj();
-        if (doc == null) {
-            return "N/A";
-        }
-        return doc;
     }
 
     //--------------------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-package jp.tuor.backend.web.utils;
+package jp.tuor.backend.utils;
 
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.springframework.web.multipart.MultipartFile;
