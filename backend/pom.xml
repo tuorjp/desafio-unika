@@ -54,6 +54,12 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
 
         <!-- APACHE WICKET -->
         <dependency>
@@ -119,6 +125,14 @@
             <groupId>br.com.caelum.stella</groupId>
             <artifactId>caelum-stella-core</artifactId>
             <version>2.2.2</version>
+        </dependency>
+
+        <!--OBJENESIS (PARA INSTANCIAR OBJETOS)-->
+        <!-- https://mvnrepository.com/artifact/org.objenesis/objenesis -->
+        <dependency>
+            <groupId>org.objenesis</groupId>
+            <artifactId>objenesis</artifactId>
+            <version>3.4</version>
         </dependency>
 	</dependencies>
 

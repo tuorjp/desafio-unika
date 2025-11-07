@@ -1,0 +1,44 @@
+/*título*/
+.header-home {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/*ações e filtros do topo*/
+.actions-filter-container {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.actions-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filters-container {
+    display: flex;
+    flex-direction: row;
+    gap: 0.2rem;
+}
+
+/*container da paginação*/
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.table-actions {
+    font-size: 1.25rem;
+    display: flex;
+    gap: 15px;
+}

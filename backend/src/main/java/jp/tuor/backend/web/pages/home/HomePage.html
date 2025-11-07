@@ -1,3 +1,72 @@
 <wicket:extend xmlns:wicket="http://wicket.apache.org">
-    <h2 wicket:id="titulo"></h2>
+        <header class="header-home">
+            <h2 wicket:id="titulo"></h2>
+        </header>
+
+        <div class="actions-filter-container">
+            <div class="actions-container">
+                <button type="button" class="btn btn-primary" disabled>Novo <i class="bi bi-plus-lg"></i></button>
+                <button type="button" class="btn btn-success" disabled>Importar .xlsx <i class="bi bi-file-earmark-arrow-up"></i></button>
+            </div>
+            <div class="filters-container">
+                <div>
+                    <input type="text" class="form-control" placeholder="Nome" disabled>
+                </div>
+                <div>
+                    <input type="text" class="form-control" placeholder="Cidade" disabled>
+                </div>
+                <div>
+                    <input type="text" class="form-control" placeholder="CPF/CNPJ" disabled>
+                </div>
+            </div>
+        </div>
+
+        <div wicket:id="tableContainer">
+            <div class="table-container card">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">CPF/CNPJ</th>
+                        <th scope="col">Data</th>
+                        <th scope="col">Endereço Principal</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr wicket:id="clienteList">
+                        <th scope="row"><span wicket:id="id"></span></th>
+                        <td><span wicket:id="nome"></span></td>
+                        <td><span wicket:id="email"></span></td>
+                        <td><span wicket:id="documento"></span></td>
+                        <td><span wicket:id="data"></span></td>
+                        <td><span wicket:id="endereco"></span></td>
+                        <td><span wicket:id="status" class="badge"></span></td>
+                        <td class="table-actions">
+                            <i class="bi bi-trash-fill text-black-50"></i>
+                            <i class="bi bi-pencil-fill text-black-50"></i>
+                            <i class="bi bi-download text-black-50"></i>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-container">
+                <span class="total-registros">
+                    <span wicket:id="totalRegistros"></span>
+                </span>
+                <div class="pagination-controls">
+                    <div wicket:id="pagingNavigator"></div>
+                </div>
+            </div>
+        </div>
+
+        <div wicket:id="emptyMessage" class="alert alert-info text-center">
+            Nenhum cliente encontrado
+        </div>
+
 </wicket:extend>

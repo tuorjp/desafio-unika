@@ -3,6 +3,10 @@ package jp.tuor.backend.repository;
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.repository.dto.ResumoClientesPorCidade;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +18,15 @@ import java.util.Optional;
 public interface ClienteRepository extends JpaRepository<Cliente, Long>, JpaSpecificationExecutor<Cliente> {
     Optional<Cliente> findByCnpj(String cnpj);
     Optional<Cliente> findByCpf(String cpf);
+
+    //forçando a busca dos endereços mesmo eles sendo FtchType.LAZY, um LEFT JOIN FETCH c.enderecos automático
+    @Override
+    @EntityGraph(attributePaths = { "enderecos" })
+    Optional<Cliente> findById(Long id);
+
+    @Override
+    @EntityGraph(attributePaths = {"enderecos"})
+    Page<Cliente> findAll(Specification<Cliente> spec, Pageable pageable);
 
     //JPQL
     @Query(
