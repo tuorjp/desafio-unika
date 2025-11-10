@@ -63,7 +63,9 @@
                         <td><span wicket:id="endereco"></span></td>
                         <td><span wicket:id="status" class="badge"></span></td>
                         <td class="table-actions">
-                            <i class="bi bi-trash-fill text-danger"></i>
+                            <a wicket:id="deleteLink" title="Excluir" class="text-danger">
+                                <i class="bi bi-trash-fill"></i>
+                            </a>
                             <i class="bi bi-pencil-fill text-primary"></i>
                             <i class="bi bi-download text-danger"></i>
                         </td>
@@ -84,6 +86,30 @@
 
         <div wicket:id="emptyMessage" class="alert alert-info text-center">
             Nenhum cliente encontrado
+        </div>
+
+        <div class="modal fade" wicket:id="confirmDeleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="deleteModalLabel">
+                            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                            Confirmar Exclusão
+                        </h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p wicket:id="confirmMessage">
+                            Tem certeza que deseja excluir este cliente?
+                        </p>
+                        <p class="text-danger fw-bold">Esta ação não pode ser desfeita.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <a wicket:id="cancelButton" class="btn btn-secondary">Cancelar</a>
+                        <a wicket:id="confirmButton" class="btn btn-danger">Sim, Excluir Cliente</a>
+                    </div>
+                </div>
+            </div>
         </div>
 
 </wicket:extend>

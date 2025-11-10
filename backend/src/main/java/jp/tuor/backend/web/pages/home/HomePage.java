@@ -9,11 +9,13 @@ import jp.tuor.backend.utils.WicketMultipartFile;
 import jp.tuor.backend.web.ClienteDataProvider;
 import jp.tuor.backend.web.pages.BasePage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -25,6 +27,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +47,11 @@ public class HomePage extends BasePage {
     private final WebMarkupContainer emptyMessage;
     private final FeedbackPanel feedbackPanel;
     private final SortableDataProvider<Cliente, String> dataProvider;
+    private WebMarkupContainer confirmDeleteModal;
+    private final IModel<String> confirmMessageModel;
+    private final IModel<Long> clienteIdParaExcluirModel;
+    private Label confirmMessage;
+    private AjaxLink<Void> confirmButton;
 
     //--------------------------------------------------------------------------------------------------------
     //métodos de renderização e configuração
@@ -56,6 +64,49 @@ public class HomePage extends BasePage {
         feedbackPanel = new FeedbackPanel("feedbackPanel");
         feedbackPanel.setOutputMarkupId(true);
         add(feedbackPanel);
+
+        //modal delete
+        confirmMessageModel = Model.of("");
+        clienteIdParaExcluirModel = Model.of((Long) null);
+        confirmDeleteModal = new WebMarkupContainer("confirmDeleteModal");
+        confirmDeleteModal.setOutputMarkupId(true);
+        confirmMessage = new Label("confirmMessage", confirmMessageModel);
+        confirmMessage.setOutputMarkupId(true);
+        confirmDeleteModal.add(confirmMessage);
+
+        confirmDeleteModal.add(new AjaxLink<Void>("cancelButton") {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).hide();");
+            }
+        });
+
+        confirmButton = new AjaxLink<Void>("confirmButton") {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                Long idParaExcluir = clienteIdParaExcluirModel.getObject();
+                if (idParaExcluir != null) {
+                    try {
+                        clienteService.deletarCliente(idParaExcluir);
+                        success("Cliente excluído com sucesso.");
+
+                        dataProvider.detach();
+                        atualizarVisibilidadeTabela();
+                        target.add(tableContainer, emptyMessage, feedbackPanel);
+
+                    } catch (Exception e) {
+                        error("Erro ao excluir cliente: " + e.getMessage());
+                        target.add(feedbackPanel);
+                    }
+                }
+                //fecha o modal
+                target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).hide();");
+                clienteIdParaExcluirModel.setObject(null); //limpa o ID
+            }
+        };
+
+        confirmDeleteModal.add(confirmButton);
+        add(confirmDeleteModal);
 
         //date provider da tabela
         dataProvider = new ClienteDataProvider(clienteService);
@@ -113,17 +164,21 @@ public class HomePage extends BasePage {
         super.renderHead(response);
 
         response.render(CssHeaderItem.forReference(new PackageResourceReference(HomePage.class, "HomePage.css")));
+        String modalId = confirmDeleteModal.getMarkupId();
+        response.render(OnDomReadyHeaderItem.forScript(
+                "new bootstrap.Modal(document.getElementById('" + modalId + "'));"
+        ));
     }
 
     //--------------------------------------------------------------------------------------------------------
     //métodos auxiliares resgatar/tratar dados
-
     private DataView<Cliente> getClienteDataView(SortableDataProvider<Cliente, String> dataProvider) {
         DataView<Cliente> dataView = new DataView<Cliente>("clienteList", dataProvider) {
             @Override
             protected void populateItem(Item<Cliente> item) {
                 Cliente cliente = item.getModelObject();
 
+                //dados do cliente
                 item.add(new Label("id", cliente.getId()));
                 item.add(new Label("nome", StringUtils.getNomeCliente(cliente)));
                 item.add(new Label("email", cliente.getEmail() != null? cliente.getEmail() : "n/a" ));
@@ -135,6 +190,12 @@ public class HomePage extends BasePage {
                 Label statusLabel = new Label("status", cliente.isAtivo() ? "Ativo" : "Inativo");
                 statusLabel.add(new AttributeAppender("class", cliente.isAtivo() ? "text-bg-success" : "text-bg-danger"));
                 item.add(statusLabel);
+
+                //ações da tabela
+                //delete
+                IModel<Cliente> clienteIModel = item.getModel();
+                AjaxLink<Cliente> deleteLink = criaBotaoDelete(clienteIModel);
+                item.add(deleteLink);
             }
         };
 
@@ -196,5 +257,24 @@ public class HomePage extends BasePage {
                 target.add(feedbackPanel);
             }
         });
+    }
+
+    private AjaxLink<Cliente> criaBotaoDelete(IModel<Cliente> clienteIModel) {
+        AjaxLink<Cliente> deleteLink = new AjaxLink<Cliente>("deleteLink") {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                Cliente cliente = clienteIModel.getObject();
+
+                String nome = StringUtils.getNomeCliente(cliente);
+                confirmMessageModel.setObject("Tem certeza que deseja excluir o cliente " + nome + "?");
+                clienteIdParaExcluirModel.setObject(cliente.getId());
+
+                ajaxRequestTarget.add(confirmMessage);
+
+                ajaxRequestTarget
+                        .appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).show();");
+            }
+        };
+        return deleteLink;
     }
 }
