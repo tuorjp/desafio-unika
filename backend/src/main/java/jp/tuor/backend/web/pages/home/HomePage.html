@@ -1,115 +1,123 @@
 <wicket:extend xmlns:wicket="http://wicket.apache.org">
-        <header class="header-home">
-            <h2 wicket:id="titulo"></h2>
-        </header>
+    <header class="header-home">
+        <h2 wicket:id="titulo"></h2>
+    </header>
 
-        <div wicket:id="feedbackPanel" class="container-fluid my-2"></div>
+    <div wicket:id="feedbackPanel" class="container-fluid my-2"></div>
 
-        <div class="actions-filter-container">
-            <div class="actions-container">
-                <div>
-                    <button type="button" class="btn btn-primary">Novo <i class="bi bi-plus-lg"></i></button>
-                </div>
-                <div class="card p-4">
-                    <form wicket:id="importForm" class="d-flex flex-column gap-2">
-                        <input type="file" wicket:id="fileUpload" class="form-control form-control-sm"/>
-                        <button type="submit" class="btn btn-success" wicket:id="importSubmitButton">
-                            Importar .xlsx <i class="bi bi-file-earmark-arrow-up"></i>
-                        </button>
-                    </form>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-success">Exportar .xlsx <i class="bi bi-file-earmark-arrow-down"></i></button>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-danger">Exportar .pdf <i class="bi bi-filetype-pdf"></i></button>
-                </div>
+    <div class="actions-filter-container">
+        <div class="actions-container">
+            <div>
+                <a wicket:id="novoButton" class="btn btn-primary">Novo <i class="bi bi-plus-lg"></i></a>
             </div>
-            <div class="filters-container">
-                <div>
-                    <input type="text" class="form-control" placeholder="Nome">
-                </div>
-                <div>
-                    <input type="text" class="form-control" placeholder="Cidade">
-                </div>
-                <div>
-                    <input type="text" class="form-control" placeholder="CPF/CNPJ">
-                </div>
+            <div class="card p-4">
+                <form wicket:id="importForm" class="d-flex flex-column gap-2">
+                    <input type="file" wicket:id="fileUpload" class="form-control form-control-sm"/>
+                    <button type="submit" class="btn btn-success" wicket:id="importSubmitButton">
+                        Importar .xlsx <i class="bi bi-file-earmark-arrow-up"></i>
+                    </button>
+                </form>
+            </div>
+            <div>
+                <button type="button" class="btn btn-success">Exportar .xlsx <i
+                        class="bi bi-file-earmark-arrow-down"></i></button>
+            </div>
+            <div>
+                <button type="button" class="btn btn-danger">Exportar .pdf <i class="bi bi-filetype-pdf"></i></button>
             </div>
         </div>
-
-        <div wicket:id="tableContainer">
-            <div class="table-container card">
-                <table class="table table-hover">
-                    <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Nome</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">CPF/CNPJ</th>
-                        <th scope="col">Data</th>
-                        <th scope="col">Endereço Principal</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Ações</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr wicket:id="clienteList">
-                        <th scope="row"><span wicket:id="id"></span></th>
-                        <td><span wicket:id="nome"></span></td>
-                        <td><span wicket:id="email"></span></td>
-                        <td><span wicket:id="documento"></span></td>
-                        <td><span wicket:id="data"></span></td>
-                        <td><span wicket:id="endereco"></span></td>
-                        <td><span wicket:id="status" class="badge"></span></td>
-                        <td class="table-actions">
-                            <a wicket:id="deleteLink" title="Excluir" class="text-danger">
-                                <i class="bi bi-trash-fill"></i>
-                            </a>
-                            <i class="bi bi-pencil-fill text-primary"></i>
-                            <i class="bi bi-download text-danger"></i>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+        <div class="filters-container">
+            <div>
+                <input type="text" class="form-control" placeholder="Nome">
             </div>
+            <div>
+                <input type="text" class="form-control" placeholder="Cidade">
+            </div>
+            <div>
+                <input type="text" class="form-control" placeholder="CPF/CNPJ">
+            </div>
+        </div>
+    </div>
 
-            <div class="pagination-container">
+    <div wicket:id="tableContainer">
+        <div class="table-container card">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">CPF/CNPJ</th>
+                    <th scope="col">Data</th>
+                    <th scope="col">Endereço Principal</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Ações</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr wicket:id="clienteList">
+                    <th scope="row"><span wicket:id="id"></span></th>
+                    <td><span wicket:id="nome"></span></td>
+                    <td><span wicket:id="email"></span></td>
+                    <td><span wicket:id="documento"></span></td>
+                    <td><span wicket:id="data"></span></td>
+                    <td><span wicket:id="endereco"></span></td>
+                    <td><span wicket:id="status" class="badge"></span></td>
+                    <td class="table-actions">
+                        <a wicket:id="deleteLink" title="Excluir" class="text-danger">
+                            <i class="bi bi-trash-fill"></i>
+                        </a>
+                        <a wicket:id="editLink" title="Editar" class="text-primary">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <a wicket:id="downloadLink" title="Baixar PDF" class="text-primary">
+                            <i class="bi bi-download"></i>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-container">
                 <span class="total-registros">
                     <span wicket:id="totalRegistros"></span>
                 </span>
-                <div class="pagination-controls">
-                    <div wicket:id="pagingNavigator"></div>
+            <div class="pagination-controls">
+                <div wicket:id="pagingNavigator"></div>
+            </div>
+        </div>
+    </div>
+
+    <div wicket:id="emptyMessage" class="alert alert-info text-center">
+        Nenhum cliente encontrado
+    </div>
+
+    <div class="modal fade" wicket:id="confirmDeleteModal" tabindex="-1" aria-labelledby="deleteModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                        Confirmar Exclusão
+                    </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p wicket:id="confirmMessage">
+                        Tem certeza que deseja excluir este cliente?
+                    </p>
+                    <p class="text-danger fw-bold">Esta ação não pode ser desfeita.</p>
+                </div>
+                <div class="modal-footer">
+                    <a wicket:id="cancelButton" class="btn btn-secondary">Cancelar</a>
+                    <a wicket:id="confirmButton" class="btn btn-danger">Sim, Excluir Cliente</a>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div wicket:id="emptyMessage" class="alert alert-info text-center">
-            Nenhum cliente encontrado
-        </div>
-
-        <div class="modal fade" wicket:id="confirmDeleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="deleteModalLabel">
-                            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
-                            Confirmar Exclusão
-                        </h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p wicket:id="confirmMessage">
-                            Tem certeza que deseja excluir este cliente?
-                        </p>
-                        <p class="text-danger fw-bold">Esta ação não pode ser desfeita.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <a wicket:id="cancelButton" class="btn btn-secondary">Cancelar</a>
-                        <a wicket:id="confirmButton" class="btn btn-danger">Sim, Excluir Cliente</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div wicket:id="clienteFormModal"></div>
 
 </wicket:extend>

@@ -15,49 +15,49 @@ import java.util.Iterator;
 
 @RequiredArgsConstructor
 public class ClienteDataProvider extends SortableDataProvider<Cliente, String> {
-    private final ClienteService clienteService;
-    private Page<Cliente> lastPageCache;
+  private final ClienteService clienteService;
+  private Page<Cliente> lastPageCache;
 
-    @Override
-    public Iterator<? extends Cliente> iterator(long first, long count) {
-        int page = (int) (first / count);
-        int size = (int) count;
+  @Override
+  public Iterator<? extends Cliente> iterator(long first, long count) {
+    int page = (int) (first / count);
+    int size = (int) count;
 
-        Pageable pageable = PageRequest.of(page, size);
+    Pageable pageable = PageRequest.of(page, size);
 
-        this.lastPageCache = clienteService.buscarClientesFiltrados(null, null, null, pageable);
+    this.lastPageCache = clienteService.buscarClientesFiltrados(null, null, null, pageable);
 
-        if(this.lastPageCache != null) {
-            return this.lastPageCache.iterator();
-        } else {
-            return Collections.emptyIterator();
-        }
+    if (this.lastPageCache != null) {
+      return this.lastPageCache.iterator();
+    } else {
+      return Collections.emptyIterator();
+    }
+  }
+
+  @Override
+  public long size() {
+    if (this.lastPageCache == null) {
+      iterator(0, 10); //valor padrão
     }
 
-    @Override
-    public long size() {
-        if(this.lastPageCache == null) {
-            iterator(0, 10); //valor padrão
-        }
+    return this.lastPageCache != null ? this.lastPageCache.getTotalElements() : 0;
+  }
 
-        return this.lastPageCache != null ? this.lastPageCache.getTotalElements() : 0;
-    }
+  @Override
+  public IModel<Cliente> model(Cliente cliente) {
+    final Long clienteId = cliente.getId();
 
-    @Override
-    public IModel<Cliente> model(Cliente cliente) {
-        final Long clienteId = cliente.getId();
+    return new LoadableDetachableModel<Cliente>() {
+      @Override
+      protected Cliente load() {
+        return clienteService.buscaClientePorId(clienteId);
+      }
+    };
+  }
 
-        return new LoadableDetachableModel<Cliente>() {
-            @Override
-            protected Cliente load() {
-                return clienteService.buscaClientePorId(clienteId);
-            }
-        };
-    }
-
-    @Override
-    public void detach() {
-        super.detach();
-        this.lastPageCache = null;
-    }
+  @Override
+  public void detach() {
+    super.detach();
+    this.lastPageCache = null;
+  }
 }

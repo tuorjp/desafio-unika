@@ -21,33 +21,33 @@ import java.util.Date;
 @RequestMapping("/api/cliente/report")
 @RequiredArgsConstructor
 public class ClienteReportController {
-    private final ReportService reportService;
+  private final ReportService reportService;
 
-    @GetMapping("/pdf/geral")
-    public ResponseEntity<InputStreamResource> exportReportGeral() throws JRException, FileNotFoundException {
-        byte[] pdfBytes = reportService.gerarRelatorioGeralClientes();
-        return criarRespostaPdf(pdfBytes, "relatorio_geral_clientes");
-    }
+  @GetMapping("/pdf/geral")
+  public ResponseEntity<InputStreamResource> exportReportGeral() throws JRException, FileNotFoundException {
+    byte[] pdfBytes = reportService.gerarRelatorioGeralClientes();
+    return criarRespostaPdf(pdfBytes, "relatorio_geral_clientes");
+  }
 
-    @GetMapping("/pdf/{id}")
-    public ResponseEntity<InputStreamResource> exportReportIndividual(@PathVariable Long id) throws JRException, FileNotFoundException {
-        byte[] pdfBytes = reportService.gerarRelatorioClienteIndividual(id);
-        return criarRespostaPdf(pdfBytes, "relatorio_cliente_" + id);
-    }
+  @GetMapping("/pdf/{id}")
+  public ResponseEntity<InputStreamResource> exportReportIndividual(@PathVariable Long id) throws JRException, FileNotFoundException {
+    byte[] pdfBytes = reportService.gerarRelatorioClienteIndividual(id);
+    return criarRespostaPdf(pdfBytes, "relatorio_cliente_" + id);
+  }
 
-    private ResponseEntity<InputStreamResource> criarRespostaPdf(byte[] pdfBytes, String baseFileName) {
-        ByteArrayInputStream bais = new ByteArrayInputStream(pdfBytes);
+  private ResponseEntity<InputStreamResource> criarRespostaPdf(byte[] pdfBytes, String baseFileName) {
+    ByteArrayInputStream bais = new ByteArrayInputStream(pdfBytes);
 
-        String data = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String filename = String.format("%s_%s.pdf", baseFileName, data);
+    String data = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+    String filename = String.format("%s_%s.pdf", baseFileName, data);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + filename);
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + filename);
 
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(new InputStreamResource(bais));
-    }
+    return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(new InputStreamResource(bais));
+  }
 }

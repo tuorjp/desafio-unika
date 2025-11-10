@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -16,49 +17,51 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Cliente {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Cliente implements Serializable {
+  private static final long serialVersionUID = 1L;
 
-    @Column(nullable = false)
-    private TipoPessoa tipoPessoa;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(unique = true)
-    private String cpf;
+  @Column(nullable = false)
+  private TipoPessoa tipoPessoa;
 
-    @Column(unique = true)
-    private String cnpj;
+  @Column(unique = true)
+  private String cpf;
 
-    @Column
-    private String nome;
+  @Column(unique = true)
+  private String cnpj;
 
-    @Column
-    private String rg;
+  @Column
+  private String nome;
 
-    @Column
-    private Date dataNascimento;
+  @Column
+  private String rg;
 
-    @Column
-    private Date dataCriacao;
+  @Column
+  private Date dataNascimento;
 
-    @Column
-    private String razaoSocial;
+  @Column
+  private Date dataCriacao;
 
-    @Column
-    private String inscricaoEstadual;
+  @Column
+  private String razaoSocial;
 
-    @Column
-    private String email;
+  @Column
+  private String inscricaoEstadual;
 
-    @Column(nullable = false)
-    private boolean ativo;
+  @Column
+  private String email;
 
-    @JsonManagedReference
-    @OneToMany(
-            mappedBy = "cliente",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<Endereco> enderecos;
+  @Column(nullable = false)
+  private boolean ativo;
+
+  @JsonManagedReference
+  @OneToMany(
+          mappedBy = "cliente",
+          cascade = CascadeType.ALL,
+          orphanRemoval = true
+  )
+  private List<Endereco> enderecos;
 }

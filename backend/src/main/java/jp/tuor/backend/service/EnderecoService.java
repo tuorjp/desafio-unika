@@ -11,17 +11,17 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class EnderecoService {
-    private final EnderecoRepository enderecoRepository;
+  private final EnderecoRepository enderecoRepository;
 
-    public void editEndereco(Endereco endereco) {
-        this.enderecoRepository.save(endereco);
-    }
+  public void editEndereco(Endereco endereco) {
+    this.enderecoRepository.save(endereco);
+  }
 
-    public Endereco findById(Long id) {
-        return this.enderecoRepository.findById(id).orElse(null);
-    }
+  public Endereco findById(Long id) {
+    return this.enderecoRepository.findById(id).orElse(null);
+  }
 
-    public List<Endereco> getEnderecosByCliente(Cliente cliente) {
-        return this.enderecoRepository.getByCliente(cliente);
-    }
+  public List<Endereco> getEnderecosByCliente(Cliente cliente) {
+    return this.enderecoRepository.getByCliente(cliente);
+  }
 }

@@ -7,6 +7,7 @@ import jp.tuor.backend.service.ClienteService;
 import jp.tuor.backend.utils.StringUtils;
 import jp.tuor.backend.utils.WicketMultipartFile;
 import jp.tuor.backend.web.ClienteDataProvider;
+import jp.tuor.backend.web.components.ClienteFormPanel;
 import jp.tuor.backend.web.pages.BasePage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -38,243 +39,286 @@ import java.util.Map;
 
 @WicketHomePage
 public class HomePage extends BasePage {
-    @SpringBean
-    private ClienteService clienteService;
-    @SpringBean
-    private ClienteExcelImportService importService;
+  @SpringBean
+  private ClienteService clienteService;
+  @SpringBean
+  private ClienteExcelImportService importService;
 
-    private final WebMarkupContainer tableContainer;
-    private final WebMarkupContainer emptyMessage;
-    private final FeedbackPanel feedbackPanel;
-    private final SortableDataProvider<Cliente, String> dataProvider;
-    private WebMarkupContainer confirmDeleteModal;
-    private final IModel<String> confirmMessageModel;
-    private final IModel<Long> clienteIdParaExcluirModel;
-    private Label confirmMessage;
-    private AjaxLink<Void> confirmButton;
+  private final WebMarkupContainer tableContainer;
+  private final WebMarkupContainer emptyMessage;
+  private final FeedbackPanel feedbackPanel;
+  private final SortableDataProvider<Cliente, String> dataProvider;
+  private WebMarkupContainer confirmDeleteModal;
+  private final IModel<String> confirmMessageModel;
+  private final IModel<Long> clienteIdParaExcluirModel;
+  private final ClienteFormPanel clienteFormModal;
+  private Label confirmMessage;
+  private AjaxLink<Void> confirmButton;
 
-    //--------------------------------------------------------------------------------------------------------
-    //métodos de renderização e configuração
-    public HomePage() {
-        //título simples
-        super();
-        String str = "Clientes";
-        add(new Label("titulo", str));
+  //--------------------------------------------------------------------------------------------------------
+  //métodos de renderização e configuração
+  public HomePage() {
+    //título simples
+    super();
+    String str = "Clientes";
+    add(new Label("titulo", str));
 
-        feedbackPanel = new FeedbackPanel("feedbackPanel");
-        feedbackPanel.setOutputMarkupId(true);
-        add(feedbackPanel);
+    feedbackPanel = new FeedbackPanel("feedbackPanel");
+    feedbackPanel.setOutputMarkupId(true);
+    add(feedbackPanel);
 
-        //modal delete
-        confirmMessageModel = Model.of("");
-        clienteIdParaExcluirModel = Model.of((Long) null);
-        confirmDeleteModal = new WebMarkupContainer("confirmDeleteModal");
-        confirmDeleteModal.setOutputMarkupId(true);
-        confirmMessage = new Label("confirmMessage", confirmMessageModel);
-        confirmMessage.setOutputMarkupId(true);
-        confirmDeleteModal.add(confirmMessage);
+    //modal delete
+    confirmMessageModel = Model.of("");
+    clienteIdParaExcluirModel = Model.of((Long) null);
+    confirmDeleteModal = new WebMarkupContainer("confirmDeleteModal");
+    confirmDeleteModal.setOutputMarkupId(true);
+    confirmMessage = new Label("confirmMessage", confirmMessageModel);
+    confirmMessage.setOutputMarkupId(true);
+    confirmDeleteModal.add(confirmMessage);
 
-        confirmDeleteModal.add(new AjaxLink<Void>("cancelButton") {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).hide();");
-            }
-        });
+    confirmDeleteModal.add(new AjaxLink<Void>("cancelButton") {
+      @Override
+      public void onClick(AjaxRequestTarget target) {
+        target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).hide();");
+      }
+    });
 
-        confirmButton = new AjaxLink<Void>("confirmButton") {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                Long idParaExcluir = clienteIdParaExcluirModel.getObject();
-                if (idParaExcluir != null) {
-                    try {
-                        clienteService.deletarCliente(idParaExcluir);
-                        success("Cliente excluído com sucesso.");
+    confirmButton = new AjaxLink<Void>("confirmButton") {
+      @Override
+      public void onClick(AjaxRequestTarget target) {
+        Long idParaExcluir = clienteIdParaExcluirModel.getObject();
+        if (idParaExcluir != null) {
+          try {
+            clienteService.deletarCliente(idParaExcluir);
+            success("Cliente excluído com sucesso.");
 
-                        dataProvider.detach();
-                        atualizarVisibilidadeTabela();
-                        target.add(tableContainer, emptyMessage, feedbackPanel);
+            dataProvider.detach();
+            atualizarVisibilidadeTabela();
+            target.add(tableContainer, emptyMessage, feedbackPanel);
 
-                    } catch (Exception e) {
-                        error("Erro ao excluir cliente: " + e.getMessage());
-                        target.add(feedbackPanel);
-                    }
-                }
-                //fecha o modal
-                target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).hide();");
-                clienteIdParaExcluirModel.setObject(null); //limpa o ID
-            }
-        };
+          } catch (Exception e) {
+            error("Erro ao excluir cliente: " + e.getMessage());
+            target.add(feedbackPanel);
+          }
+        }
+        //fecha o modal
+        target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).hide();");
+        clienteIdParaExcluirModel.setObject(null); //limpa o ID
+      }
+    };
 
-        confirmDeleteModal.add(confirmButton);
-        add(confirmDeleteModal);
+    confirmDeleteModal.add(confirmButton);
+    add(confirmDeleteModal);
 
-        //date provider da tabela
-        dataProvider = new ClienteDataProvider(clienteService);
+    //date provider da tabela
+    dataProvider = new ClienteDataProvider(clienteService);
 
-        //container da tabela e paginação
-        tableContainer = new WebMarkupContainer("tableContainer");
-        tableContainer.setOutputMarkupId(true);
-        tableContainer.setOutputMarkupPlaceholderTag(true);
-        add(tableContainer);
+    //container da tabela e paginação
+    tableContainer = new WebMarkupContainer("tableContainer");
+    tableContainer.setOutputMarkupId(true);
+    tableContainer.setOutputMarkupPlaceholderTag(true);
+    add(tableContainer);
 
-        //data view para a tabela
-        DataView<Cliente> dataView = getClienteDataView(dataProvider);
-        tableContainer.add(dataView);
+    //data view para a tabela
+    DataView<Cliente> dataView = getClienteDataView(dataProvider);
+    tableContainer.add(dataView);
 
-        //paging navigator
-        tableContainer.add(new PagingNavigator("pagingNavigator", dataView));
+    //paging navigator
+    tableContainer.add(new PagingNavigator("pagingNavigator", dataView));
 
-        //label total de registros
-        IModel<String> totalMsgModel = new LoadableDetachableModel<String>() {
-            @Override
-            protected String load() {
-                long total = dataProvider.size();
-                return "Total de registros: " + total;
-            }
-        };
-        tableContainer.add(new Label("totalRegistros", totalMsgModel));
+    //label total de registros
+    IModel<String> totalMsgModel = new LoadableDetachableModel<String>() {
+      @Override
+      protected String load() {
+        long total = dataProvider.size();
+        return "Total de registros: " + total;
+      }
+    };
+    tableContainer.add(new Label("totalRegistros", totalMsgModel));
 
-        //configurações de visibilidade
-        long totalItems = dataProvider.size();
-        tableContainer.setVisible(totalItems > 0);
+    //configurações de visibilidade
+    long totalItems = dataProvider.size();
+    tableContainer.setVisible(totalItems > 0);
 
-        emptyMessage = new WebMarkupContainer("emptyMessage");
-        emptyMessage.setOutputMarkupId(true);
-        emptyMessage.setOutputMarkupPlaceholderTag(true);
-        emptyMessage.setVisible(totalItems == 0);
-        add(emptyMessage);
+    emptyMessage = new WebMarkupContainer("emptyMessage");
+    emptyMessage.setOutputMarkupId(true);
+    emptyMessage.setOutputMarkupPlaceholderTag(true);
+    emptyMessage.setVisible(totalItems == 0);
+    add(emptyMessage);
+    atualizarVisibilidadeTabela();
+
+    //importação do arquivo .xlsx
+    //cria campo de upload
+    final FileUploadField fileUploadField = new FileUploadField("fileUpload");
+    //cria form
+    Form<?> importForm = new Form<>("importForm");
+    importForm.setMultiPart(true);
+    importForm.add(fileUploadField);
+
+    //botão submit com ajax
+    criarBotaoImportSubmitAjax(importForm, fileUploadField);
+    add(importForm);
+
+    //modal do formulário
+    clienteFormModal = new ClienteFormPanel("clienteFormModal") {
+      @Override
+      public void onSave(AjaxRequestTarget target) {
+        dataProvider.detach();
         atualizarVisibilidadeTabela();
+        target.add(tableContainer, emptyMessage, feedbackPanel);
+        success("Cliente salvo com sucesso.");
+        target.add(feedbackPanel);
+      }
 
-        //importação do arquivo .xlsx
-        //cria campo de upload
-        final FileUploadField fileUploadField = new FileUploadField("fileUpload");
-        //cria form
-        Form<?> importForm = new Form<>("importForm");
-        importForm.setMultiPart(true);
-        importForm.add(fileUploadField);
+      @Override
+      public void onCancel(AjaxRequestTarget target) {
+        //nada
+      }
+    };
 
-        //botão submit com ajax
-        criarBotaoImportSubmitAjax(importForm, fileUploadField);
+    add(clienteFormModal);
 
-        add(importForm);
-    }
-
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        response.render(CssHeaderItem.forReference(new PackageResourceReference(HomePage.class, "HomePage.css")));
-        String modalId = confirmDeleteModal.getMarkupId();
-        response.render(OnDomReadyHeaderItem.forScript(
-                "new bootstrap.Modal(document.getElementById('" + modalId + "'));"
-        ));
-    }
-
-    //--------------------------------------------------------------------------------------------------------
-    //métodos auxiliares resgatar/tratar dados
-    private DataView<Cliente> getClienteDataView(SortableDataProvider<Cliente, String> dataProvider) {
-        DataView<Cliente> dataView = new DataView<Cliente>("clienteList", dataProvider) {
-            @Override
-            protected void populateItem(Item<Cliente> item) {
-                Cliente cliente = item.getModelObject();
-
-                //dados do cliente
-                item.add(new Label("id", cliente.getId()));
-                item.add(new Label("nome", StringUtils.getNomeCliente(cliente)));
-                item.add(new Label("email", cliente.getEmail() != null? cliente.getEmail() : "n/a" ));
-                item.add(new Label("documento", StringUtils.getDocumentoCliente(cliente)));
-                item.add(new Label("data", StringUtils.getDataCliente(cliente)));
-                item.add(new Label("endereco", StringUtils.getEnderecoPrincipal(cliente.getEnderecos())));
-
-                //badge do status
-                Label statusLabel = new Label("status", cliente.isAtivo() ? "Ativo" : "Inativo");
-                statusLabel.add(new AttributeAppender("class", cliente.isAtivo() ? "text-bg-success" : "text-bg-danger"));
-                item.add(statusLabel);
-
-                //ações da tabela
-                //delete
-                IModel<Cliente> clienteIModel = item.getModel();
-                AjaxLink<Cliente> deleteLink = criaBotaoDelete(clienteIModel);
-                item.add(deleteLink);
+    //botão criar novo usuário
+    add(
+            new AjaxLink<Void>("novoButton") {
+              @Override
+              public void onClick(AjaxRequestTarget target) {
+                clienteFormModal.openForCreate(target);
+              }
             }
+    );
+  }
+
+  @Override
+  public void renderHead(IHeaderResponse response) {
+    super.renderHead(response);
+
+    response.render(CssHeaderItem.forReference(new PackageResourceReference(HomePage.class, "HomePage.css")));
+    String modalId = confirmDeleteModal.getMarkupId();
+    response.render(OnDomReadyHeaderItem.forScript(
+            "new bootstrap.Modal(document.getElementById('" + modalId + "'));"
+    ));
+  }
+
+  //--------------------------------------------------------------------------------------------------------
+  //métodos auxiliares resgatar/tratar dados
+  private DataView<Cliente> getClienteDataView(SortableDataProvider<Cliente, String> dataProvider) {
+    DataView<Cliente> dataView = new DataView<Cliente>("clienteList", dataProvider) {
+      @Override
+      protected void populateItem(Item<Cliente> item) {
+        Cliente cliente = item.getModelObject();
+
+        //dados do cliente
+        item.add(new Label("id", cliente.getId()));
+        item.add(new Label("nome", StringUtils.getNomeCliente(cliente)));
+        item.add(new Label("email", cliente.getEmail() != null ? cliente.getEmail() : "n/a"));
+        item.add(new Label("documento", StringUtils.getDocumentoCliente(cliente)));
+        item.add(new Label("data", StringUtils.getDataCliente(cliente)));
+        item.add(new Label("endereco", StringUtils.getEnderecoPrincipal(cliente.getEnderecos())));
+
+        //badge do status
+        Label statusLabel = new Label("status", cliente.isAtivo() ? "Ativo" : "Inativo");
+        statusLabel.add(new AttributeAppender("class", cliente.isAtivo() ? "text-bg-success" : "text-bg-danger"));
+        item.add(statusLabel);
+
+        //ações da tabela
+        //delete
+        IModel<Cliente> clienteIModel = item.getModel();
+        AjaxLink<Cliente> deleteLink = criaBotaoDelete(clienteIModel);
+        item.add(deleteLink);
+
+        //edit
+        AjaxLink<Cliente> editLink = new AjaxLink<Cliente>("editLink", clienteIModel) {
+          @Override
+          public void onClick(AjaxRequestTarget target) {
+            clienteFormModal.openForEdit(getModel(), target);
+          }
         };
+        item.add(editLink);
 
-        dataView.setItemsPerPage(10);
-        return dataView;
-    }
+        //download relatório
+        WebMarkupContainer downloadLink = new WebMarkupContainer("downloadLink");
+        downloadLink.setEnabled(false);
+        item.add(downloadLink);
+      }
+    };
 
-    //--------------------------------------------------------------------------------------------------------
-    //métodos auxiliares UI
-    private void atualizarVisibilidadeTabela() {
-        long totalItems = dataProvider.size();
-        tableContainer.setVisible(totalItems > 0);
-        emptyMessage.setVisible(totalItems == 0);
-    }
+    dataView.setItemsPerPage(10);
+    return dataView;
+  }
 
-    private void criarBotaoImportSubmitAjax(Form<?> importForm, FileUploadField fileUploadField) {
-        importForm.add(new AjaxButton("importSubmitButton", importForm) {
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                final FileUpload fileUpload = fileUploadField.getFileUpload();
+  //--------------------------------------------------------------------------------------------------------
+  //métodos auxiliares UI
+  private void atualizarVisibilidadeTabela() {
+    long totalItems = dataProvider.size();
+    tableContainer.setVisible(totalItems > 0);
+    emptyMessage.setVisible(totalItems == 0);
+  }
 
-                if (fileUpload == null) {
-                    error("Por favor, selecione um arquivo .xlsx para importar.");
-                    target.add(feedbackPanel);
-                    return;
-                }
+  private void criarBotaoImportSubmitAjax(Form<?> importForm, FileUploadField fileUploadField) {
+    importForm.add(new AjaxButton("importSubmitButton", importForm) {
+      @Override
+      protected void onSubmit(AjaxRequestTarget target) {
+        final FileUpload fileUpload = fileUploadField.getFileUpload();
 
-                MultipartFile multipartFile = new WicketMultipartFile(fileUpload);
+        if (fileUpload == null) {
+          error("Por favor, selecione um arquivo .xlsx para importar.");
+          target.add(feedbackPanel);
+          return;
+        }
 
-                try {
-                    Map<String, Object> resultado = importService.importarClientesExcel(multipartFile);
+        MultipartFile multipartFile = new WicketMultipartFile(fileUpload);
 
-                    Boolean sucesso = (Boolean) resultado.getOrDefault("sucesso", false);
-                    if(sucesso) {
-                        Integer criados = (Integer) resultado.get("clientesCriados");
-                        success("Importação concluída. " + criados + " clientes salvos.");
+        try {
+          Map<String, Object> resultado = importService.importarClientesExcel(multipartFile);
 
-                        dataProvider.detach();
-                        atualizarVisibilidadeTabela();
-                        target.add(tableContainer, emptyMessage);
-                    } else {
-                        List<String> erros = (List<String>) resultado.get("erros");
-                        if(erros != null && !erros.isEmpty()) {
-                            erros.forEach(this::error);
-                        } else {
-                            error("Importação falhou.");
-                        }
-                    }
-                } catch (IOException e) {
-                    error("Erro ao ler arquivo " + e.getMessage());
-                } catch (Exception e) {
-                    error("Erro inesperado " + e.getMessage());
-                }
-                target.add(feedbackPanel);
+          Boolean sucesso = (Boolean) resultado.getOrDefault("sucesso", false);
+          if (sucesso) {
+            Integer criados = (Integer) resultado.get("clientesCriados");
+            success("Importação concluída. " + criados + " clientes salvos.");
+
+            dataProvider.detach();
+            atualizarVisibilidadeTabela();
+            target.add(tableContainer, emptyMessage);
+          } else {
+            List<String> erros = (List<String>) resultado.get("erros");
+            if (erros != null && !erros.isEmpty()) {
+              erros.forEach(this::error);
+            } else {
+              error("Importação falhou.");
             }
+          }
+        } catch (IOException e) {
+          error("Erro ao ler arquivo " + e.getMessage());
+        } catch (Exception e) {
+          error("Erro inesperado " + e.getMessage());
+        }
+        target.add(feedbackPanel);
+      }
 
-            protected void onError(AjaxRequestTarget target) {
-                //caso o wicket der um erro (ex arquivo muito grande)
-                target.add(feedbackPanel);
-            }
-        });
-    }
+      protected void onError(AjaxRequestTarget target) {
+        //caso o wicket der um erro (ex arquivo muito grande)
+        target.add(feedbackPanel);
+      }
+    });
+  }
 
-    private AjaxLink<Cliente> criaBotaoDelete(IModel<Cliente> clienteIModel) {
-        AjaxLink<Cliente> deleteLink = new AjaxLink<Cliente>("deleteLink") {
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                Cliente cliente = clienteIModel.getObject();
+  private AjaxLink<Cliente> criaBotaoDelete(IModel<Cliente> clienteIModel) {
+    AjaxLink<Cliente> deleteLink = new AjaxLink<Cliente>("deleteLink") {
+      @Override
+      public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+        Cliente cliente = clienteIModel.getObject();
 
-                String nome = StringUtils.getNomeCliente(cliente);
-                confirmMessageModel.setObject("Tem certeza que deseja excluir o cliente " + nome + "?");
-                clienteIdParaExcluirModel.setObject(cliente.getId());
+        String nome = StringUtils.getNomeCliente(cliente);
+        confirmMessageModel.setObject("Tem certeza que deseja excluir o cliente " + nome + "?");
+        clienteIdParaExcluirModel.setObject(cliente.getId());
 
-                ajaxRequestTarget.add(confirmMessage);
+        ajaxRequestTarget.add(confirmMessage);
 
-                ajaxRequestTarget
-                        .appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).show();");
-            }
-        };
-        return deleteLink;
-    }
+        ajaxRequestTarget
+                .appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).show();");
+      }
+    };
+    return deleteLink;
+  }
 }

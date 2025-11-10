@@ -1,0 +1,82 @@
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <div class="modal fade" wicket:id="clienteModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <form wicket:id="clienteForm">
+
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" wicket:id="modalTitle">
+                            Título do Modal
+                        </h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div wicket:id="formFeedback" class="alert alert-danger"></div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label for="tipoPessoa" class="form-label">Tipo de Pessoa *</label>
+                                <select wicket:id="tipoPessoa" class="form-select"></select>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" wicket:id="email" class="form-control"/>
+                            </div>
+                        </div>
+
+                        <div wicket:id="containerPF" class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label for="cpf" class="form-label">CPF *</label>
+                                <input type="text" wicket:id="cpf" class="form-control"/>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="nome" class="form-label">Nome Completo *</label>
+                                <input type="text" wicket:id="nome" class="form-control"/>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label for="rg" class="form-label">RG</label>
+                                <input type="text" wicket:id="rg" class="form-control"/>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="dataNascimento" class="form-label">Data Nasc.</label>
+                                <input type="text" wicket:id="dataNascimento" class="form-control"/>
+                            </div>
+                        </div>
+
+                        <div wicket:id="containerPJ" class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label for="cnpj" class="form-label">CNPJ *</label>
+                                <input type="text" wicket:id="cnpj" class="form-control"/>
+                            </div>
+                            <div class="col-md-5">
+                                <label for="razaoSocial" class="form-label">Razão Social *</label>
+                                <input type="text" wicket:id="razaoSocial" class="form-control"/>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="inscricaoEstadual" class="form-label">Insc. Estadual</label>
+                                <input type="text" wicket:id="inscricaoEstadual" class="form-control"/>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="dataCriacao" class="form-label">Data Criação</label>
+                                <input type="text" wicket:id="dataCriacao" class="form-control"/>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <a wicket:id="cancelButton" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" wicket:id="saveButton" class="btn btn-primary">Salvar</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</wicket:panel>

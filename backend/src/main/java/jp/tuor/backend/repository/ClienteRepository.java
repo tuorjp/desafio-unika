@@ -16,39 +16,40 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ClienteRepository extends JpaRepository<Cliente, Long>, JpaSpecificationExecutor<Cliente> {
-    Optional<Cliente> findByCnpj(String cnpj);
-    Optional<Cliente> findByCpf(String cpf);
+  Optional<Cliente> findByCnpj(String cnpj);
 
-    //forçando a busca dos endereços mesmo eles sendo FtchType.LAZY, um LEFT JOIN FETCH c.enderecos automático
-    @Override
-    @EntityGraph(attributePaths = { "enderecos" })
-    Optional<Cliente> findById(Long id);
+  Optional<Cliente> findByCpf(String cpf);
 
-    @Override
-    @EntityGraph(attributePaths = {"enderecos"})
-    Page<Cliente> findAll(Specification<Cliente> spec, Pageable pageable);
+  //forçando a busca dos endereços mesmo eles sendo FtchType.LAZY, um LEFT JOIN FETCH c.enderecos automático
+  @Override
+  @EntityGraph(attributePaths = {"enderecos"})
+  Optional<Cliente> findById(Long id);
 
-    //JPQL
-    @Query(
-            "SELECT DISTINCT c FROM Cliente c " +
-            "JOIN c.enderecos e " +
-            "WHERE c.tipoPessoa = :tipoPessoa AND e.estado = :estado"
-    )
-    List<Cliente> findByTipoPessoaAndEstado(
-            @Param("tipoPessoa")TipoPessoa tipoPessoa,
-            @Param("estado") String estado
-    );
+  @Override
+  @EntityGraph(attributePaths = {"enderecos"})
+  Page<Cliente> findAll(Specification<Cliente> spec, Pageable pageable);
 
-    //SQL puro
-    @Query(
-            value = "SELECT e.cidade AS cidade, COUNT(DISTINCT c.id) AS totalClientes " +
-                    "FROM clientes c " +
-                    "JOIN enderecos e ON c.id = e.cliente_id " +
-                    "GROUP BY e.cidade " +
-                    "ORDER BY totalClientes DESC",
-            nativeQuery = true
-    )
-    List<ResumoClientesPorCidade> getResumoClientesPorCidade();
+  //JPQL
+  @Query(
+          "SELECT DISTINCT c FROM Cliente c " +
+                  "JOIN c.enderecos e " +
+                  "WHERE c.tipoPessoa = :tipoPessoa AND e.estado = :estado"
+  )
+  List<Cliente> findByTipoPessoaAndEstado(
+          @Param("tipoPessoa") TipoPessoa tipoPessoa,
+          @Param("estado") String estado
+  );
 
-    Long id(Long id);
+  //SQL puro
+  @Query(
+          value = "SELECT e.cidade AS cidade, COUNT(DISTINCT c.id) AS totalClientes " +
+                  "FROM clientes c " +
+                  "JOIN enderecos e ON c.id = e.cliente_id " +
+                  "GROUP BY e.cidade " +
+                  "ORDER BY totalClientes DESC",
+          nativeQuery = true
+  )
+  List<ResumoClientesPorCidade> getResumoClientesPorCidade();
+
+  Long id(Long id);
 }

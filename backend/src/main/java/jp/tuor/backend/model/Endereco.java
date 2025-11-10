@@ -5,43 +5,47 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Setter
 @Getter
 @Entity
-public class Endereco {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Endereco implements Serializable {
+  private static final long serialVersionUID = 1L;
 
-    @Column(nullable = false)
-    private String logradouro;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column
-    private String numero;
+  @Column(nullable = false)
+  private String logradouro;
 
-    @Column(nullable = false)
-    private String cep;
+  @Column
+  private String numero;
 
-    @Column(nullable = false)
-    private String bairro;
+  @Column(nullable = false)
+  private String cep;
 
-    @Column
-    private String telefone;
+  @Column(nullable = false)
+  private String bairro;
 
-    @Column(nullable = false)
-    private String cidade;
+  @Column
+  private String telefone;
 
-    @Column(nullable = false)
-    private String estado;
+  @Column(nullable = false)
+  private String cidade;
 
-    @Column(nullable = false)
-    private boolean enderecoPrincipal;
+  @Column(nullable = false)
+  private String estado;
 
-    @Column
-    private String complemento;
+  @Column(nullable = false)
+  private boolean enderecoPrincipal;
 
-    @JsonBackReference
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id")
-    private Cliente cliente;
+  @Column
+  private String complemento;
+
+  @JsonBackReference
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "cliente_id")
+  private Cliente cliente;
 }
