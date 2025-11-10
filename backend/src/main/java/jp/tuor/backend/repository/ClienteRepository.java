@@ -29,6 +29,10 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long>, JpaSpec
   @EntityGraph(attributePaths = {"enderecos"})
   Page<Cliente> findAll(Specification<Cliente> spec, Pageable pageable);
 
+  @Override
+  @EntityGraph(attributePaths = {"enderecos"})
+  List<Cliente> findAll();
+
   //JPQL
   @Query(
           "SELECT DISTINCT c FROM Cliente c " +

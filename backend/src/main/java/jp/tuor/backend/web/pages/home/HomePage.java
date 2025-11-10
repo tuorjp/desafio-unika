@@ -4,6 +4,7 @@ import com.giffing.wicket.spring.boot.context.scan.WicketHomePage;
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.service.ClienteExcelImportService;
 import jp.tuor.backend.service.ClienteService;
+import jp.tuor.backend.service.ReportService;
 import jp.tuor.backend.utils.StringUtils;
 import jp.tuor.backend.utils.WicketMultipartFile;
 import jp.tuor.backend.web.ClienteDataProvider;
@@ -22,6 +23,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
@@ -29,10 +31,13 @@ import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +48,8 @@ public class HomePage extends BasePage {
   private ClienteService clienteService;
   @SpringBean
   private ClienteExcelImportService importService;
+  @SpringBean
+  private ReportService reportService;
 
   private final WebMarkupContainer tableContainer;
   private final WebMarkupContainer emptyMessage;
@@ -54,6 +61,8 @@ public class HomePage extends BasePage {
   private final ClienteFormPanel clienteFormModal;
   private Label confirmMessage;
   private AjaxLink<Void> confirmButton;
+  private AbstractResource excelResource;
+  private AbstractResource pdfResource;
 
   //--------------------------------------------------------------------------------------------------------
   //métodos de renderização e configuração
@@ -180,13 +189,69 @@ public class HomePage extends BasePage {
 
     //botão criar novo usuário
     add(
-            new AjaxLink<Void>("novoButton") {
-              @Override
-              public void onClick(AjaxRequestTarget target) {
-                clienteFormModal.openForCreate(target);
-              }
-            }
+      new AjaxLink<Void>("novoButton") {
+        @Override
+        public void onClick(AjaxRequestTarget target) {
+          clienteFormModal.openForCreate(target);
+        }
+      }
     );
+
+    excelResource = new AbstractResource() {
+      @Override
+      protected ResourceResponse newResourceResponse(Attributes attributes) {
+        ResourceResponse response = new ResourceResponse();
+        //o tipo de arquivo
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        //o nome do arquivo e força o download (attachment)
+        response.setContentDisposition(ContentDisposition.ATTACHMENT);
+        response.setFileName("clientes.xlsx");
+
+        //o "corpo" da resposta
+        response.setWriteCallback(new WriteCallback() {
+          @Override
+          public void writeData(Attributes attributes) throws IOException {
+            try (ByteArrayInputStream bis = clienteService.gerarRelatorioExcel()) {
+              //escreve o stream do seu service direto para a resposta
+              bis.transferTo(attributes.getResponse().getOutputStream());
+            } catch (Exception e) {
+              throw new IOException("Erro ao gerar relatório Excel", e);
+            }
+          }
+        });
+
+        return response;
+      }
+    };
+
+    add(new ResourceLink<Void>("exportXlsxButton", excelResource));
+
+    pdfResource = new AbstractResource() {
+      @Override
+      protected ResourceResponse newResourceResponse(Attributes attributes) {
+        ResourceResponse response = new ResourceResponse();
+        response.setContentType("application/pdf");
+        response.setContentDisposition(ContentDisposition.ATTACHMENT);
+        response.setFileName("clientes_geral.pdf");
+
+        response.setWriteCallback(new WriteCallback() {
+          @Override
+          public void writeData(Attributes attributes) throws IOException {
+            try {
+              byte[] pdfBytes = reportService.gerarRelatorioGeralClientes();
+              attributes.getResponse().getOutputStream().write(pdfBytes);
+            } catch (Exception e) {
+              throw new IOException("Erro ao gerar relatório PDF", e);
+            }
+          }
+        });
+
+        return response;
+      }
+    };
+
+    ResourceLink<Void> pdfLink = new ResourceLink<>("exportPdfButton", pdfResource);
+    add(pdfLink);
   }
 
   @Override
@@ -237,8 +302,32 @@ public class HomePage extends BasePage {
         item.add(editLink);
 
         //download relatório
-        WebMarkupContainer downloadLink = new WebMarkupContainer("downloadLink");
-        downloadLink.setEnabled(false);
+        AbstractResource individualPdfResource = new AbstractResource() {
+          @Override
+          protected ResourceResponse newResourceResponse(Attributes attributes) {
+            Long clienteId = clienteIModel.getObject().getId();
+
+            ResourceResponse response = new ResourceResponse();
+            response.setContentType("application/pdf");
+            response.setContentDisposition(ContentDisposition.ATTACHMENT);
+            response.setFileName("cliente_" + clienteId + ".pdf");
+
+            response.setWriteCallback(new WriteCallback() {
+              @Override
+              public void writeData(Attributes attributes) throws IOException {
+                try {
+                  byte[] pdfBytes = reportService.gerarRelatorioClienteIndividual(clienteId);
+                  attributes.getResponse().getOutputStream().write(pdfBytes);
+                } catch (Exception e) {
+                  throw new IOException("Erro ao gerar PDF individual para ID: " + clienteId, e);
+                }
+              }
+            });
+            return response;
+          }
+        };
+
+        ResourceLink<Void> downloadLink = new ResourceLink<>("downloadLink", individualPdfResource);
         item.add(downloadLink);
       }
     };
