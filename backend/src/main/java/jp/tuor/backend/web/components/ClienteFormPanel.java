@@ -6,12 +6,15 @@ import jp.tuor.backend.model.dto.EnderecoDTO;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.model.mapper.ClienteMapper;
 import jp.tuor.backend.service.ClienteService;
+import jp.tuor.backend.utils.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.form.DateTextField;
 import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -88,7 +91,13 @@ public abstract class ClienteFormPanel extends Panel {
     form.add(new CheckBox("ativo"));
 
     //PF
-    containerPF = new WebMarkupContainer("containerPF");
+    containerPF = new WebMarkupContainer("containerPF") {
+      @Override
+      protected void onConfigure() {
+        super.onConfigure();
+        setEnabled(TipoPessoa.FISICA.equals(form.getModelObject().getTipoPessoa()));
+      }
+    };
     containerPF.setOutputMarkupId(true);
     containerPF.add(new AttributeAppender("class", new Model<String>() {
       @Override
@@ -100,13 +109,18 @@ public abstract class ClienteFormPanel extends Panel {
     containerPF.add(new TextField<>("cpf"));
     containerPF.add(new TextField<>("nome"));
     containerPF.add(new TextField<>("rg"));
-    TextField<Date> dataNascimentoField = new TextField<>("dataNascimento");
-    dataNascimentoField.add(new AttributeAppender("type", "date"));
+    DateTextField dataNascimentoField = new DateTextField("dataNascimento", "dd/MM/yyyy");
     containerPF.add(dataNascimentoField);
     form.add(containerPF);
 
     //PJ
-    containerPJ = new WebMarkupContainer("containerPJ");
+    containerPJ = new WebMarkupContainer("containerPJ") {
+      @Override
+      protected void onConfigure() {
+        super.onConfigure();
+        setEnabled(TipoPessoa.JURIDICA.equals(form.getModelObject().getTipoPessoa()));
+      }
+    };
     containerPJ.setOutputMarkupId(true);
     containerPJ.add(new AttributeAppender("class", new Model<String>() {
       @Override
@@ -118,8 +132,7 @@ public abstract class ClienteFormPanel extends Panel {
     containerPJ.add(new TextField<>("cnpj"));
     containerPJ.add(new TextField<>("razaoSocial"));
     containerPJ.add(new TextField<>("inscricaoEstadual"));
-    TextField<Date> dataCriacaoField = new TextField<>("dataCriacao");
-    dataCriacaoField.add(new AttributeAppender("type", "date"));
+    DateTextField dataCriacaoField = new DateTextField("dataCriacao", "dd/MM/yyyy");
     containerPJ.add(dataCriacaoField);
     form.add(containerPJ);
 
@@ -164,6 +177,14 @@ public abstract class ClienteFormPanel extends Panel {
       public void onClick(AjaxRequestTarget target) {
         form.getModelObject().getEnderecos().add(new EnderecoDTO());
         target.add(enderecosContainer);
+
+        String initMasksScript = String.format(
+                "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
+                        "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
+                        "});",
+                enderecosContainer.getMarkupId() //pega o ID do container de endereços
+        );
+        target.appendJavaScript(initMasksScript);
       }
     };
 
@@ -174,6 +195,19 @@ public abstract class ClienteFormPanel extends Panel {
       @Override
       protected void onSubmit(AjaxRequestTarget target) {
         ClienteDTO clienteDTO = form.getModelObject();
+
+        if (TipoPessoa.FISICA.equals(clienteDTO.getTipoPessoa())) {
+          clienteDTO.setCpf(StringUtils.removerMascaraDigito(clienteDTO.getCpf()));
+        } else if (TipoPessoa.JURIDICA.equals(clienteDTO.getTipoPessoa())) {
+          clienteDTO.setCnpj(StringUtils.removerMascaraDigito(clienteDTO.getCnpj()));
+        }
+
+        if (clienteDTO.getEnderecos() != null) {
+          for (EnderecoDTO end : clienteDTO.getEnderecos()) {
+            end.setCep(StringUtils.removerMascaraDigito(end.getCep()));
+          }
+        }
+
         try {
           if (isEditMode) {
             clienteService.editarCliente(clienteDTO);
@@ -246,10 +280,28 @@ public abstract class ClienteFormPanel extends Panel {
   //manipulação do modal UI
   @Override
   public void renderHead(IHeaderResponse response) {
+    response.render(JavaScriptHeaderItem.forUrl("https://unpkg.com/imask"));
+
     // Cria o objeto JS do Bootstrap no cliente
     response.render(OnDomReadyHeaderItem.forScript(
             "new bootstrap.Modal(document.getElementById('" + modal.getMarkupId() + "'));"
     ));
+
+    String initMasksScript = String.format(
+            "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
+                    "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
+                    "});",
+            modal.getMarkupId()
+    );
+
+    String bootstrapListenerScript = String.format(
+            "const modalEl = document.getElementById('%s');" +
+                    "modalEl.addEventListener('shown.bs.modal', () => { %s });",
+            modal.getMarkupId(),
+            initMasksScript
+    );
+
+    response.render(OnDomReadyHeaderItem.forScript(bootstrapListenerScript));
   }
 
   private void abrirModal(AjaxRequestTarget target) {

@@ -52,10 +52,42 @@ public class StringUtils {
   }
 
   public static String getDocumentoCliente(Cliente cliente) {
-    String doc = cliente.getTipoPessoa() == TipoPessoa.FISICA ? cliente.getCpf() : cliente.getCnpj();
-    if (doc == null) {
-      return "N/A";
+    if (cliente == null) {
+      return "n/a";
     }
-    return doc;
+
+    if (TipoPessoa.FISICA.equals(cliente.getTipoPessoa()) && cliente.getCpf() != null) {
+      return formatarCPF(cliente.getCpf());
+
+    } else if (TipoPessoa.JURIDICA.equals(cliente.getTipoPessoa()) && cliente.getCnpj() != null) {
+      return formatarCNPJ(cliente.getCnpj());
+
+    } else {
+      return "n/a";
+    }
+  }
+
+  public static String formatarCPF(String cpf) {
+    cpf = removerMascaraDigito(cpf);
+    if (cpf == null || cpf.length() != 11) {
+      return cpf;
+    }
+    return cpf.replaceFirst("(\\d{3})(\\d{3})(\\d{3})(\\d{2})", "$1.$2.$3-$4");
+  }
+
+  public static String formatarCNPJ(String cnpj) {
+    cnpj = removerMascaraDigito(cnpj);
+    if (cnpj == null || cnpj.length() != 14) {
+      return cnpj;
+    }
+    return cnpj.replaceFirst("(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})", "$1.$2.$3/$4-$5");
+  }
+
+  public static String formatarCEP(String cep) {
+    cep = removerMascaraDigito(cep);
+    if (cep == null || cep.length() != 8) {
+      return cep;
+    }
+    return cep.replaceFirst("(\\d{5})(\\d{3})", "$1-$2");
   }
 }
