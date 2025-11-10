@@ -2,6 +2,7 @@ package jp.tuor.backend.web.components;
 
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.dto.ClienteDTO;
+import jp.tuor.backend.model.dto.EnderecoDTO;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.model.mapper.ClienteMapper;
 import jp.tuor.backend.service.ClienteService;
@@ -14,10 +15,9 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EmailTextField;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.CompoundPropertyModel;
@@ -25,6 +25,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -41,6 +42,7 @@ public abstract class ClienteFormPanel extends Panel {
   private boolean isEditMode;
   private WebMarkupContainer containerPF;
   private WebMarkupContainer containerPJ;
+  private WebMarkupContainer enderecosContainer;
 
   public ClienteFormPanel(String id) {
     super(id);
@@ -83,6 +85,7 @@ public abstract class ClienteFormPanel extends Panel {
     });
     form.add(tipoPessoaField);
     form.add(new EmailTextField("email"));
+    form.add(new CheckBox("ativo"));
 
     //PF
     containerPF = new WebMarkupContainer("containerPF");
@@ -119,6 +122,52 @@ public abstract class ClienteFormPanel extends Panel {
     dataCriacaoField.add(new AttributeAppender("type", "date"));
     containerPJ.add(dataCriacaoField);
     form.add(containerPJ);
+
+    //endereços
+    enderecosContainer = new WebMarkupContainer("enderecosContainer");
+    enderecosContainer.setOutputMarkupId(true);
+    form.add(enderecosContainer);
+
+    //ListView equivalente ao *ngFor
+    ListView<EnderecoDTO> enderecosView = new ListView<EnderecoDTO>("enderecos") {
+      @Override
+      protected void populateItem(ListItem<EnderecoDTO> item) {
+        item.setDefaultModel(new CompoundPropertyModel<>(item.getModel()));
+
+        item.add(new TextField<>("cep"));
+        item.add(new TextField<>("logradouro"));
+        item.add(new TextField<>("numero"));
+        item.add(new TextField<>("complemento"));
+        item.add(new TextField<>("bairro"));
+        item.add(new TextField<>("cidade"));
+        item.add(new TextField<>("estado"));
+        item.add(new CheckBox("enderecoPrincipal"));
+
+        AjaxLink<Void> removeLink = new AjaxLink<Void>("removeEndereco") {
+          @Override
+          public void onClick(AjaxRequestTarget target) {
+            EnderecoDTO dtoToRemove = item.getModelObject();
+            form.getModelObject().getEnderecos().remove(dtoToRemove);
+            target.add(enderecosContainer);
+          }
+        };
+
+        item.add(removeLink);
+      };
+    };
+
+    enderecosView.setReuseItems(true);
+    enderecosContainer.add(enderecosView);
+
+    AjaxLink<Void> addEnderecoLink = new AjaxLink<Void>("addEndereco") {
+      @Override
+      public void onClick(AjaxRequestTarget target) {
+        form.getModelObject().getEnderecos().add(new EnderecoDTO());
+        target.add(enderecosContainer);
+      }
+    };
+
+    form.add(addEnderecoLink);
 
     //botão salvar
     form.add(new AjaxButton("saveButton", form) {
@@ -159,11 +208,15 @@ public abstract class ClienteFormPanel extends Panel {
   //métodos para o componente pai chamar
   public void openForCreate(AjaxRequestTarget target) {
     this.isEditMode = false;
-
     titleModel.setObject("Novo Cliente");
-    ClienteDTO dto = new ClienteDTO();
 
+    ClienteDTO dto = new ClienteDTO();
     dto.setTipoPessoa(TipoPessoa.FISICA);
+    dto.setAtivo(true);
+
+    dto.setEnderecos(new ArrayList<>());
+    dto.getEnderecos().add(new EnderecoDTO());
+
     form.setModelObject(dto);
     target.add(form);
     abrirModal(target);
@@ -174,8 +227,13 @@ public abstract class ClienteFormPanel extends Panel {
     titleModel.setObject("Editar Cliente");
 
     ClienteDTO dto = clienteMapper.clienteParaDTO(clienteModel.getObject());
-    form.setModelObject(dto); //preenche o formulário
 
+    if(dto.getEnderecos() == null || dto.getEnderecos().isEmpty()) {
+      dto.setEnderecos(new ArrayList<>());
+      dto.getEnderecos().add(new EnderecoDTO());
+    }
+
+    form.setModelObject(dto); //preenche o formulário
     target.add(form); //atualiza o formulário (preenchido)
     abrirModal(target); //chama o JS para abrir
   }

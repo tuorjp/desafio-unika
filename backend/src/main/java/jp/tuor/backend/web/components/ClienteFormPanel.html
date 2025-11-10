@@ -26,6 +26,12 @@
                                 <label for="email" class="form-label">Email</label>
                                 <input type="email" wicket:id="email" class="form-control"/>
                             </div>
+                            <div class="col-md-2 d-flex align-items-end justify-content-center">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" wicket:id="ativo" class="form-check-input"/>
+                                    <label class="form-check-label" for="ativo">Ativo</label>
+                                </div>
+                            </div>
                         </div>
 
                         <div wicket:id="containerPF" class="row g-3 mb-3">
@@ -68,6 +74,75 @@
                             </div>
                         </div>
 
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4>Endereços</h4>
+                            <a wicket:id="addEndereco" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-plus-circle"></i> Adicionar Endereço
+                            </a>
+                        </div>
+
+                        <div wicket:id="enderecosContainer" class="list-group">
+
+                            <div wicket:id="enderecos" class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5>Endereço</h5>
+
+                                        <a wicket:id="removeEndereco" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i> Remover
+                                        </a>
+                                    </div>
+
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-md-3">
+                                            <label class="form-label">CEP *</label>
+                                            <div class="input-group">
+                                                <input type="text" wicket:id="cep" class="form-control"/>
+                                                <button type="button" class="btn btn-outline-secondary">
+                                                    <i class="bi bi-search"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Logradouro *</label>
+                                            <input type="text" wicket:id="logradouro" class="form-control"/>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Número *</label>
+                                            <input type="text" wicket:id="numero" class="form-control"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Complemento</label>
+                                            <input type="text" wicket:id="complemento" class="form-control"/>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-md-3">
+                                            <label class="form-label">Bairro *</label>
+                                            <input type="text" wicket:id="bairro" class="form-control"/>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Cidade *</label>
+                                            <input type="text" wicket:id="cidade" class="form-control"/>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <label class="form-label">UF *</label>
+                                            <input type="text" wicket:id="estado" class="form-control"/>
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end justify-content-center">
+                                            <div class="form-check">
+                                                <input type="checkbox" wicket:id="enderecoPrincipal"
+                                                       class="form-check-input"/>
+                                                <label class="form-check-label">Principal?</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="modal-footer">
