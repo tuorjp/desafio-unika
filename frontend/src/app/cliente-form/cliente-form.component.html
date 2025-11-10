@@ -27,7 +27,7 @@
                 <option value="JURIDICA">Pessoa Jurídica</option>
               </select>
             </div>
-            <div class="col-md-6">
+            <div [ngClass]="isEditMode ? 'col-md-4' : 'col-md-6'" >
               <label for="email" class="form-label">Email</label>
               <input type="email" id="email" class="form-control" formControlName="email"
                      [class.is-invalid]="this.f['email'].invalid && (f['email'].dirty || f['email'].touched)">
@@ -35,6 +35,12 @@
                 <div *ngIf="f['email'].errors?.['required']">
                   O email é obrigatório.
                 </div>
+              </div>
+            </div>
+            <div class="col-md-2 d-flex align-items-end justify-content-center">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="ativo" formControlName="ativo">
+                <label class="form-check-label" for="ativo">Ativo</label>
               </div>
             </div>
           </div>

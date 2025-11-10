@@ -1,6 +1,6 @@
 import {Component, EventEmitter, inject, Output} from '@angular/core';
 import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {DatePipe, NgForOf, NgIf} from "@angular/common";
+import {DatePipe, NgClass, NgForOf, NgIf} from "@angular/common";
 import {NgxMaskDirective} from "ngx-mask";
 import {Modal} from "bootstrap";
 import {NotificationService} from "../shared/notification/notification.service";
@@ -19,7 +19,8 @@ import {ClienteDTO} from "../dto/cliente.dto";
     NgForOf,
     NgIf,
     NgxMaskDirective,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgClass
   ],
   templateUrl: './cliente-form.component.html',
   styleUrl: './cliente-form.component.css'
@@ -61,7 +62,7 @@ export class ClienteFormComponent {
       id: [null],
       tipoPessoa: ['FISICA', Validators.required],
       email: ['', [Validators.email]],
-      ativo: [true],
+      ativo: [true, Validators.required],
 
       //PF
       cpf: [''],
