@@ -3,6 +3,7 @@ package jp.tuor.backend.web.components;
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.dto.ClienteDTO;
 import jp.tuor.backend.model.dto.EnderecoDTO;
+import jp.tuor.backend.model.dto.ViaCepResponse;
 import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.model.mapper.ClienteMapper;
 import jp.tuor.backend.service.ClienteService;
@@ -27,10 +28,11 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 
 public abstract class ClienteFormPanel extends Panel {
   @SpringBean
@@ -146,16 +148,95 @@ public abstract class ClienteFormPanel extends Panel {
       @Override
       protected void populateItem(ListItem<EnderecoDTO> item) {
         item.setDefaultModel(new CompoundPropertyModel<>(item.getModel()));
+        item.setOutputMarkupId(true);
 
-        item.add(new TextField<>("cep"));
-        item.add(new TextField<>("logradouro"));
-        item.add(new TextField<>("numero"));
-        item.add(new TextField<>("complemento"));
-        item.add(new TextField<>("bairro"));
-        item.add(new TextField<>("cidade"));
-        item.add(new TextField<>("estado"));
+        //campos
+        TextField<String> cepField = new TextField<>("cep");
+        item.add(cepField);
+
+        final TextField<String> logradouroField = new TextField<>("logradouro");
+        logradouroField.setOutputMarkupId(true);
+        item.add(logradouroField);
+
+        final TextField<String> numeroField = new TextField<>("numero");
+        numeroField.setOutputMarkupId(true);
+        item.add(numeroField);
+
+        final TextField<String> complementoField = new TextField<>("complemento");
+        complementoField.setOutputMarkupId(true);
+        item.add(complementoField);
+
+        final TextField<String> bairroField = new TextField<>("bairro");
+        bairroField.setOutputMarkupId(true);
+        item.add(bairroField);
+
+        final TextField<String> cidadeField = new TextField<>("cidade");
+        cidadeField.setOutputMarkupId(true);
+        item.add(cidadeField);
+
+        final TextField<String> estadoField = new TextField<>("estado");
+        estadoField.setOutputMarkupId(true);
+        item.add(estadoField);
+
         item.add(new CheckBox("enderecoPrincipal"));
 
+        //botão de pesquisa viaCep
+        AjaxButton buscarCepButton = new AjaxButton("buscarCepButton") {
+          @Override
+          protected void onSubmit(AjaxRequestTarget target) {
+            FeedbackPanel feedback = (FeedbackPanel) ClienteFormPanel.this.form.get("formFeedback");
+
+            String cep = cepField.getInput();
+            cep = StringUtils.removerMascaraDigito(cep);
+
+            if (cep == null || cep.length() != 8) {
+              error("CEP inválido. Digite 8 números.");
+              target.add(feedback);
+              return;
+            }
+
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "https://viacep.com.br/ws/" + cep + "/json";
+
+            try {
+              ViaCepResponse response = restTemplate.getForObject(url, ViaCepResponse.class);
+
+              System.out.println(response);
+
+              if (response == null || response.isErro()) {
+                error("CEP não encontrado.");
+                target.add(feedback);
+                return;
+              }
+
+              item.getModelObject().setLogradouro(response.getLogradouro());
+              item.getModelObject().setBairro(response.getBairro());
+              item.getModelObject().setCidade(response.getLocalidade());
+              item.getModelObject().setEstado(response.getUf());
+              item.getModelObject().setComplemento(response.getComplemento());
+
+              target.add(enderecosContainer);
+
+              //target.appendJavaScript("document.getElementById('" + numeroField.getMarkupId() + "').focus();");
+
+            } catch (Exception e) {
+              error("Erro ao consultar o CEP. Tente novamente.");
+              target.add(feedback);
+              e.printStackTrace();
+            }
+          }
+
+          @Override
+          protected void onError(AjaxRequestTarget target) {
+            target.add(ClienteFormPanel.this.form.get("formFeedback"));
+          }
+        };
+
+        // Importante: Este botão NÃO deve submeter o formulário principal
+        buscarCepButton.setDefaultFormProcessing(false);
+        item.add(buscarCepButton);
+
+        //botão de remoção de endereço
         AjaxLink<Void> removeLink = new AjaxLink<Void>("removeEndereco") {
           @Override
           public void onClick(AjaxRequestTarget target) {
@@ -169,7 +250,7 @@ public abstract class ClienteFormPanel extends Panel {
       };
     };
 
-    enderecosView.setReuseItems(true);
+    enderecosView.setReuseItems(false);
     enderecosContainer.add(enderecosView);
 
     AjaxLink<Void> addEnderecoLink = new AjaxLink<Void>("addEndereco") {
