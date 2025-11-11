@@ -41,41 +41,59 @@ import java.util.Arrays;
 import java.util.Date;
 
 public abstract class ClienteFormPanel extends Panel {
+
+  //soring
   @SpringBean
   private ClienteService clienteService;
   @SpringBean
   private ClienteMapper clienteMapper;
 
+  //componentes wicket
   private Form<ClienteDTO> form;
   private WebMarkupContainer modal;
   private Label modalTitle;
-  private IModel<String> titleModel;
-  private boolean isEditMode;
   private WebMarkupContainer containerPF;
   private WebMarkupContainer containerPJ;
   private WebMarkupContainer enderecosContainer;
+  private FeedbackPanel feedbackPanel;
+
+  //estado do componente
+  private IModel<String> titleModel;
+  private boolean isEditMode;
 
   public ClienteFormPanel(String id) {
     super(id);
 
-    //div container do modal <div wicket:id="clienteModal">
+    addModalContainer();
+    addFormAndFeedback();
+    addClienteFields();
+    addPessoaFisicaJuridicaFields();
+    addEnderecosSection();
+    addFormActions();
+  }
+
+  //--------------------------------------------------------------------------------------------------------
+  //inicialização componentes
+  //--------------------------------------------------------------------------------------------------------
+
+  //container do modal
+  private void addModalContainer() {
     modal = new WebMarkupContainer("clienteModal");
     modal.setOutputMarkupId(true);
     add(modal);
+  }
 
-    //titulo
+  //formulário principal e feedBackPanel
+  private void addFormAndFeedback() {
     titleModel = Model.of("Novo Cliente");
     modalTitle = new Label("modalTitle", titleModel);
 
-    //como se fosse o FormGroup do wicket
     CompoundPropertyModel<ClienteDTO> formModel = new CompoundPropertyModel<>(new ClienteDTO());
     form = new Form<>("clienteForm", formModel);
     form.setOutputMarkupId(true);
-    modal.add(form);
     form.add(modalTitle);
 
-    //painel de feedback
-    FeedbackPanel feedbackPanel = new FeedbackPanel("formFeedback");
+    feedbackPanel = new FeedbackPanel("formFeedback");
     feedbackPanel.setOutputMarkupId(true);
     feedbackPanel.add(new AttributeAppender("class", new Model<String>() {
       @Override
@@ -84,19 +102,23 @@ public abstract class ClienteFormPanel extends Panel {
       }
     }, " "));
     form.add(feedbackPanel);
+    modal.add(form);
+  }
 
-    //campos do formulário
+  //campos comuns do cliente tipoPessoa, email, ativo
+  private void addClienteFields() {
     DropDownChoice<TipoPessoa> tipoPessoaField = new DropDownChoice<>("tipoPessoa", Arrays.asList(TipoPessoa.values()));
     tipoPessoaField.setRequired(true);
     tipoPessoaField.add(new AjaxFormComponentUpdatingBehavior("change") {
       @Override
       protected void onUpdate(AjaxRequestTarget target) {
         target.add(containerPF, containerPJ);
+        //replica as máscaras nos campos que ficaram visíveis
         String initMasksScript = String.format(
           "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
             "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
             "});",
-          modal.getMarkupId() //atualiza os campos e aplica as máscaras dinâmicas
+          modal.getMarkupId()
         );
         target.appendJavaScript(initMasksScript);
       }
@@ -104,20 +126,21 @@ public abstract class ClienteFormPanel extends Panel {
     form.add(tipoPessoaField);
     form.add(new EmailTextField("email"));
     form.add(new CheckBox("ativo"));
+  }
 
+  //validadores de data, containers de PJ e PF
+  private void addPessoaFisicaJuridicaFields() {
     //configuração de datas
     ZoneId fusoBr = Session.get().getMetaData(WicketApp.ZONE_ID_KEY);
-    if(fusoBr == null) {
+    if (fusoBr == null) {
       fusoBr = ZoneId.of("America/Sao_Paulo");
     }
-
     LocalDate dataMinima = LocalDate.of(1900, 1, 1);
     LocalDate dataMaxima = LocalDate.now(fusoBr);
-
     Date minDate = Date.from(dataMinima.atStartOfDay(fusoBr).toInstant());
     Date maxDate = Date.from(dataMaxima.atStartOfDay(fusoBr).toInstant());
 
-    //PF
+    //container PF
     containerPF = new WebMarkupContainer("containerPF") {
       @Override
       protected void onConfigure() {
@@ -141,7 +164,7 @@ public abstract class ClienteFormPanel extends Panel {
     containerPF.add(dataNascimentoField);
     form.add(containerPF);
 
-    //PJ
+    //container PJ
     containerPJ = new WebMarkupContainer("containerPJ") {
       @Override
       protected void onConfigure() {
@@ -164,195 +187,204 @@ public abstract class ClienteFormPanel extends Panel {
     dataCriacaoField.add(DateValidator.range(minDate, maxDate));
     containerPJ.add(dataCriacaoField);
     form.add(containerPJ);
+  }
 
-    //endereços
+  //endereços, ListView, botão adicionar endereço
+  private void addEnderecosSection() {
     enderecosContainer = new WebMarkupContainer("enderecosContainer");
     enderecosContainer.setOutputMarkupId(true);
     form.add(enderecosContainer);
 
-    //ListView equivalente ao *ngFor
+    //ListView para os endereços
     ListView<EnderecoDTO> enderecosView = new ListView<EnderecoDTO>("enderecos") {
       @Override
       protected void populateItem(ListItem<EnderecoDTO> item) {
-        item.setDefaultModel(new CompoundPropertyModel<>(item.getModel()));
-        item.setOutputMarkupId(true);
-
-        //campos
-        TextField<String> cepField = new TextField<>("cep");
-        item.add(cepField);
-
-        final TextField<String> logradouroField = new TextField<>("logradouro");
-        logradouroField.setOutputMarkupId(true);
-        logradouroField.add(new AttributeAppender("readonly", new LoadableDetachableModel<Object>() {
-          @Override
-          protected String load() {
-            String val = logradouroField.getModelObject();
-            return (val != null && !val.isEmpty()) ? "readonly" : null;
-          }
-        }));
-        item.add(logradouroField);
-
-        final TextField<String> numeroField = new TextField<>("numero");
-        numeroField.setOutputMarkupId(true);
-        item.add(numeroField);
-
-        final TextField<String> complementoField = new TextField<>("complemento");
-        complementoField.setOutputMarkupId(true);
-        item.add(complementoField);
-
-        final TextField<String> bairroField = new TextField<>("bairro");
-        bairroField.setOutputMarkupId(true);
-        bairroField.add(new AttributeAppender("readonly", new LoadableDetachableModel<String>() {
-          @Override
-          protected String load() {
-            String val = bairroField.getModelObject();
-            return (val != null && !val.isEmpty()) ? "readonly" : null;
-          }
-        }));
-        item.add(bairroField);
-
-        final TextField<String> cidadeField = new TextField<>("cidade");
-        cidadeField.setOutputMarkupId(true);
-        cidadeField.add(new AttributeAppender("readonly", new LoadableDetachableModel<String>() {
-          @Override
-          protected String load() {
-            String val = cidadeField.getModelObject();
-            return (val != null && !val.isEmpty()) ? "readonly" : null;
-          }
-        }));
-        item.add(cidadeField);
-
-        final TextField<String> estadoField = new TextField<>("estado");
-        estadoField.setOutputMarkupId(true);
-        estadoField.add(new AttributeAppender("readonly", new LoadableDetachableModel<String>() {
-          @Override
-          protected String load() {
-            String val = estadoField.getModelObject();
-            return (val != null && !val.isEmpty()) ? "readonly" : null;
-          }
-        }));
-        item.add(estadoField);
-
-        item.add(new CheckBox("enderecoPrincipal"));
-
-        //botão de pesquisa viaCep
-        AjaxButton buscarCepButton = new AjaxButton("buscarCepButton") {
-          @Override
-          protected void onSubmit(AjaxRequestTarget target) {
-            FeedbackPanel feedback = (FeedbackPanel) ClienteFormPanel.this.form.get("formFeedback");
-
-            String cep = cepField.getInput();
-            cep = StringUtils.removerMascaraDigito(cep);
-
-            if (cep == null || cep.length() != 8) {
-              error("CEP inválido. Digite 8 números.");
-              target.add(feedback);
-              return;
-            }
-
-            RestTemplate restTemplate = new RestTemplate();
-            String url = "https://viacep.com.br/ws/" + cep + "/json";
-
-            try {
-              ViaCepResponse response = restTemplate.getForObject(url, ViaCepResponse.class);
-
-              System.out.println(response);
-
-              if (response == null || response.isErro()) {
-                error("CEP não encontrado.");
-                target.add(feedback);
-                return;
-              }
-
-              item.getModelObject().setLogradouro(response.getLogradouro());
-              item.getModelObject().setBairro(response.getBairro());
-              item.getModelObject().setCidade(response.getLocalidade());
-              item.getModelObject().setEstado(response.getUf());
-              item.getModelObject().setComplemento(response.getComplemento());
-              item.getModelObject().setCep(cepField.getInput());
-
-              target.add(enderecosContainer);
-
-              String initMasksScript = String.format(
-                "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
-                  "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
-                  "});",
-                modal.getMarkupId() // Pega o ID do modal inteiro
-              );
-              target.appendJavaScript(initMasksScript);
-
-              //target.appendJavaScript("document.getElementById('" + numeroField.getMarkupId() + "').focus();");
-
-            } catch (Exception e) {
-              error("Erro ao consultar o CEP. Tente novamente.");
-              target.add(feedback);
-              e.printStackTrace();
-            }
-          }
-
-          @Override
-          protected void onError(AjaxRequestTarget target) {
-            target.add(ClienteFormPanel.this.form.get("formFeedback"));
-          }
-        };
-
-        // Importante: Este botão NÃO deve submeter o formulário principal
-        buscarCepButton.setDefaultFormProcessing(false);
-        item.add(buscarCepButton);
-
-        //botão de remoção de endereço
-        AjaxLink<Void> removeLink = new AjaxLink<Void>("removeEndereco") {
-          @Override
-          public void onClick(AjaxRequestTarget target) {
-            EnderecoDTO dtoToRemove = item.getModelObject();
-            form.getModelObject().getEnderecos().remove(dtoToRemove);
-            target.add(enderecosContainer);
-          }
-        };
-
-        item.add(removeLink);
+        //popula os campos e botões de cada endereço
+        populateEnderecoItem(item);
       }
     };
-
     enderecosView.setReuseItems(false);
     enderecosContainer.add(enderecosView);
 
+    //botão adicionar endereço
     AjaxLink<Void> addEnderecoLink = new AjaxLink<Void>("addEndereco") {
       @Override
       public void onClick(AjaxRequestTarget target) {
         form.getModelObject().getEnderecos().add(new EnderecoDTO());
         target.add(enderecosContainer);
 
+        //reaplica máscaras no novo item
         String initMasksScript = String.format(
           "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
             "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
             "});",
-          enderecosContainer.getMarkupId() //pega o ID do container de endereços
+          enderecosContainer.getMarkupId()
         );
         target.appendJavaScript(initMasksScript);
       }
     };
-
     form.add(addEnderecoLink);
+  }
 
+  //método auxiliar que popula os items para cada endereço da ListView
+  private void populateEnderecoItem(ListItem<EnderecoDTO> item) {
+    item.setDefaultModel(new CompoundPropertyModel<>(item.getModel()));
+    item.setOutputMarkupId(true);
+
+    //campos
+    final TextField<String> cepField = new TextField<>("cep");
+    item.add(cepField);
+
+    final TextField<String> logradouroField = new TextField<>("logradouro");
+    logradouroField.setOutputMarkupId(true);
+    logradouroField.add(new AttributeAppender("readonly", new LoadableDetachableModel<Object>() {
+      @Override
+      protected String load() {
+        String val = logradouroField.getModelObject();
+        return (val != null && !val.isEmpty()) ? "readonly" : null;
+      }
+    }));
+    item.add(logradouroField);
+
+    final TextField<String> numeroField = new TextField<>("numero");
+    numeroField.setOutputMarkupId(true);
+    item.add(numeroField);
+
+    final TextField<String> complementoField = new TextField<>("complemento");
+    complementoField.setOutputMarkupId(true);
+    item.add(complementoField);
+
+    final TextField<String> bairroField = new TextField<>("bairro");
+    bairroField.setOutputMarkupId(true);
+    bairroField.add(new AttributeAppender("readonly", new LoadableDetachableModel<String>() {
+      @Override
+      protected String load() {
+        String val = bairroField.getModelObject();
+        return (val != null && !val.isEmpty()) ? "readonly" : null;
+      }
+    }));
+    item.add(bairroField);
+
+    final TextField<String> cidadeField = new TextField<>("cidade");
+    cidadeField.setOutputMarkupId(true);
+    cidadeField.add(new AttributeAppender("readonly", new LoadableDetachableModel<String>() {
+      @Override
+      protected String load() {
+        String val = cidadeField.getModelObject();
+        return (val != null && !val.isEmpty()) ? "readonly" : null;
+      }
+    }));
+    item.add(cidadeField);
+
+    final TextField<String> estadoField = new TextField<>("estado");
+    estadoField.setOutputMarkupId(true);
+    estadoField.add(new AttributeAppender("readonly", new LoadableDetachableModel<String>() {
+      @Override
+      protected String load() {
+        String val = estadoField.getModelObject();
+        return (val != null && !val.isEmpty()) ? "readonly" : null;
+      }
+    }));
+    item.add(estadoField);
+
+    item.add(new CheckBox("enderecoPrincipal"));
+
+    //botão buscar cep
+    AjaxButton buscarCepButton = criarBuscarCepButton(item, cepField);
+    item.add(buscarCepButton);
+
+    //botão remover
+    AjaxLink<Void> removeLink = new AjaxLink<Void>("removeEndereco") {
+      @Override
+      public void onClick(AjaxRequestTarget target) {
+        EnderecoDTO dtoToRemove = item.getModelObject();
+        form.getModelObject().getEnderecos().remove(dtoToRemove);
+        target.add(enderecosContainer);
+      }
+    };
+    item.add(removeLink);
+  }
+
+  //método auxiliar que cria um botão de busca de cep para cada endereço da ListView
+  private AjaxButton criarBuscarCepButton(ListItem<EnderecoDTO> item, TextField<String> cepField) {
+    AjaxButton buscarCepButton = new AjaxButton("buscarCepButton") {
+      @Override
+      protected void onSubmit(AjaxRequestTarget target) {
+        String cep = cepField.getInput();
+        cep = StringUtils.removerMascaraDigito(cep);
+
+        if (cep == null || cep.length() != 8) {
+          error("CEP inválido. Digite 8 números.");
+          target.add(feedbackPanel);
+          return;
+        }
+
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://viacep.com.br/ws/" + cep + "/json";
+
+        try {
+          ViaCepResponse response = restTemplate.getForObject(url, ViaCepResponse.class);
+          if (response == null || response.isErro()) {
+            error("CEP não encontrado.");
+            target.add(feedbackPanel);
+            return;
+          }
+
+          //atualiza o modelo
+          item.getModelObject().setCep(cepField.getInput());//salva cep com máscara
+          item.getModelObject().setLogradouro(response.getLogradouro());
+          item.getModelObject().setBairro(response.getBairro());
+          item.getModelObject().setCidade(response.getLocalidade());
+          item.getModelObject().setEstado(response.getUf());
+          item.getModelObject().setComplemento(response.getComplemento());
+
+          //redesenha o container e reaplica as máscaras
+          target.add(enderecosContainer);
+          String initMasksScript = String.format(
+            "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
+              "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
+              "});",
+            modal.getMarkupId()
+          );
+          target.appendJavaScript(initMasksScript);
+
+        } catch (Exception e) {
+          error("Erro ao consultar o CEP. Tente novamente.");
+          target.add(feedbackPanel);
+          e.printStackTrace();
+        }
+      }
+
+      @Override
+      protected void onError(AjaxRequestTarget target) {
+        target.add(feedbackPanel);
+      }
+    };
+    buscarCepButton.setDefaultFormProcessing(false);
+    return buscarCepButton;
+  }
+
+  //botões de salvar e cancelar
+  private void addFormActions() {
     //botão salvar
     form.add(new AjaxButton("saveButton", form) {
       @Override
       protected void onSubmit(AjaxRequestTarget target) {
         ClienteDTO clienteDTO = form.getModelObject();
 
+        //limpa máscaras antes de salvar
         if (TipoPessoa.FISICA.equals(clienteDTO.getTipoPessoa())) {
           clienteDTO.setCpf(StringUtils.removerMascaraDigito(clienteDTO.getCpf()));
         } else if (TipoPessoa.JURIDICA.equals(clienteDTO.getTipoPessoa())) {
           clienteDTO.setCnpj(StringUtils.removerMascaraDigito(clienteDTO.getCnpj()));
         }
-
         if (clienteDTO.getEnderecos() != null) {
           for (EnderecoDTO end : clienteDTO.getEnderecos()) {
             end.setCep(StringUtils.removerMascaraDigito(end.getCep()));
           }
         }
 
+        //tenta salvar
         try {
           if (isEditMode) {
             clienteService.editarCliente(clienteDTO);
@@ -362,12 +394,11 @@ public abstract class ClienteFormPanel extends Panel {
           fecharModal(target);
           onSave(target);
         } catch (Exception e) {
+          //exibição de múltiplos erros
           String rawMessages = e.getMessage();
-
           if (rawMessages != null && rawMessages.contains(";")) {
             String[] erros = rawMessages.split(";");
             error("Erro ao salvar: ");
-
             for (String msg : erros) {
               if (!msg.trim().isEmpty()) {
                 error(msg.trim());
@@ -377,20 +408,19 @@ public abstract class ClienteFormPanel extends Panel {
             String message = (rawMessages != null) ? rawMessages : "Erro ao salvar.";
             error(message);
           }
-
           target.add(feedbackPanel);
         }
       }
 
       @Override
       protected void onError(AjaxRequestTarget target) {
+        //erro de validação do Wicket (DateTextField por exemplo)
         target.add(feedbackPanel);
       }
     });
 
     //botão cancelar
     form.add(new AjaxLink<Void>("cancelButton") {
-
       @Override
       public void onClick(AjaxRequestTarget target) {
         fecharModal(target);
@@ -399,7 +429,11 @@ public abstract class ClienteFormPanel extends Panel {
     });
   }
 
-  //métodos para o componente pai chamar
+  //--------------------------------------------------------------------------------------------------------
+  //métodos públicos (API do painel)
+  //--------------------------------------------------------------------------------------------------------
+
+  //abre modal para criação de cliente
   public void openForCreate(AjaxRequestTarget target) {
     this.isEditMode = false;
     titleModel.setObject("Novo Cliente");
@@ -407,7 +441,6 @@ public abstract class ClienteFormPanel extends Panel {
     ClienteDTO dto = new ClienteDTO();
     dto.setTipoPessoa(TipoPessoa.FISICA);
     dto.setAtivo(true);
-
     dto.setEnderecos(new ArrayList<>());
     dto.getEnderecos().add(new EnderecoDTO());
 
@@ -416,33 +449,37 @@ public abstract class ClienteFormPanel extends Panel {
     abrirModal(target);
   }
 
+  //abre modal para edição de cliente
   public void openForEdit(IModel<Cliente> clienteModel, AjaxRequestTarget target) {
     this.isEditMode = true;
     titleModel.setObject("Editar Cliente");
 
     ClienteDTO dto = clienteMapper.clienteParaDTO(clienteModel.getObject());
-
     if (dto.getEnderecos() == null || dto.getEnderecos().isEmpty()) {
       dto.setEnderecos(new ArrayList<>());
       dto.getEnderecos().add(new EnderecoDTO());
     }
 
-    form.setModelObject(dto); //preenche o formulário
-    target.add(form); //atualiza o formulário (preenchido)
-    abrirModal(target); //chama o JS para abrir
+    form.setModelObject(dto);
+    target.add(form);
+    abrirModal(target);
   }
 
-  //métodos abstratos, equivalente ao @Output do Angular
-  public abstract void onSave(AjaxRequestTarget target);
+  //--------------------------------------------------------------------------------------------------------
+  //métodos abstratos
+  //--------------------------------------------------------------------------------------------------------
 
+  public abstract void onSave(AjaxRequestTarget target);
   public abstract void onCancel(AjaxRequestTarget target);
 
-  //manipulação do modal UI
+  //--------------------------------------------------------------------------------------------------------
+  //renderHead para css e js
+  //--------------------------------------------------------------------------------------------------------
+
   @Override
   public void renderHead(IHeaderResponse response) {
     response.render(JavaScriptHeaderItem.forUrl("https://unpkg.com/imask"));
 
-    // Cria o objeto JS do Bootstrap no cliente
     response.render(OnDomReadyHeaderItem.forScript(
       "new bootstrap.Modal(document.getElementById('" + modal.getMarkupId() + "'));"
     ));
@@ -460,9 +497,12 @@ public abstract class ClienteFormPanel extends Panel {
       modal.getMarkupId(),
       initMasksScript
     );
-
     response.render(OnDomReadyHeaderItem.forScript(bootstrapListenerScript));
   }
+
+  //--------------------------------------------------------------------------------------------------------
+  //métodos auxiliares UI
+  //--------------------------------------------------------------------------------------------------------
 
   private void abrirModal(AjaxRequestTarget target) {
     target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + modal.getMarkupId() + "')).show();");
