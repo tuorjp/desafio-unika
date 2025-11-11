@@ -21,6 +21,7 @@ import {ClienteFormComponent} from "./cliente-form/cliente-form.component";
     FormsModule,
     ReactiveFormsModule,
     ClienteFormComponent,
+    NgxMaskDirective,
   ],
   providers: [DatePipe],
   templateUrl: './app.component.html',
@@ -130,7 +131,15 @@ export class AppComponent {
     this.isLoading = true;
     this.listaClientes = [];
 
-    this.clienteService.listarFiltrado(this.filtros, this.paginaAtual, this.tamanhoPagina)
+    const filtrosParaApi = { ...this.filtros };
+
+    if(filtrosParaApi.cpfCnpj) {
+      filtrosParaApi.cpfCnpj = filtrosParaApi.cpfCnpj.replace(/\D/g, '');
+    }
+
+    console.log(filtrosParaApi);
+
+    this.clienteService.listarFiltrado(filtrosParaApi, this.paginaAtual, this.tamanhoPagina)
       .subscribe({
         next: (pagina) => {
           this.listaClientes = pagina.content;
