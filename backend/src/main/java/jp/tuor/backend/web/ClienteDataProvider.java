@@ -2,7 +2,6 @@ package jp.tuor.backend.web;
 
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.service.ClienteService;
-import lombok.RequiredArgsConstructor;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -12,11 +11,48 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 
-@RequiredArgsConstructor
 public class ClienteDataProvider extends SortableDataProvider<Cliente, String> {
   private final ClienteService clienteService;
+  private final IModel<String> nomeFilterModel;
+  private final IModel<String> cpfCnpjFilterModel;
+  private final IModel<String> cidadeFilterModel;
+
   private Page<Cliente> lastPageCache;
+  private String cachedNome;
+  private String cachedCpfCnpj;
+  private String cachedCidade;
+
+  public ClienteDataProvider(ClienteService clienteService, IModel<String> nomeFilterModel, IModel<String> cpfCnpjFilterModel, IModel<String> cidadeFilterModel) {
+    this.clienteService = clienteService;
+    this.nomeFilterModel = nomeFilterModel;
+    this.cpfCnpjFilterModel = cpfCnpjFilterModel;
+    this.cidadeFilterModel = cidadeFilterModel;
+  }
+
+  private Page<Cliente> getPage(Pageable pageable) {
+    String nome = nomeFilterModel.getObject();
+    String cpfCnpj = cpfCnpjFilterModel.getObject();
+    String cidade = cidadeFilterModel.getObject();
+
+    if (
+      lastPageCache != null &&
+        Objects.equals(nome, cachedNome) &&
+        Objects.equals(cpfCnpj, cachedCpfCnpj) &&
+        Objects.equals(cidade, cachedCidade) &&
+        lastPageCache.getPageable().equals(pageable)
+    ) {
+      return lastPageCache;
+    }
+
+    lastPageCache = clienteService.buscarClientesFiltrados(nome, cpfCnpj, cidade, pageable);
+    cachedNome = nome;
+    cachedCpfCnpj = cpfCnpj;
+    cachedCidade = cidade;
+
+    return lastPageCache;
+  }
 
   @Override
   public Iterator<? extends Cliente> iterator(long first, long count) {
@@ -25,22 +61,29 @@ public class ClienteDataProvider extends SortableDataProvider<Cliente, String> {
 
     Pageable pageable = PageRequest.of(page, size);
 
-    this.lastPageCache = clienteService.buscarClientesFiltrados(null, null, null, pageable);
+    Page<Cliente> resultPage = getPage(pageable);
 
-    if (this.lastPageCache != null) {
-      return this.lastPageCache.iterator();
-    } else {
-      return Collections.emptyIterator();
-    }
+    return resultPage != null ? resultPage.iterator() : Collections.emptyIterator();
   }
 
   @Override
   public long size() {
-    if (this.lastPageCache == null) {
-      iterator(0, 10); //valor padrão
+    Pageable pageable = PageRequest.of(0, 10);
+
+    String nome = nomeFilterModel.getObject();
+    String cpfCnpj = cpfCnpjFilterModel.getObject();
+    String cidade = cidadeFilterModel.getObject();
+
+    if (lastPageCache != null &&
+      Objects.equals(nome, cachedNome) &&
+      Objects.equals(cpfCnpj, cachedCpfCnpj) &&
+      Objects.equals(cidade, cachedCidade)) {
+      return lastPageCache.getTotalElements();
     }
 
-    return this.lastPageCache != null ? this.lastPageCache.getTotalElements() : 0;
+    Page<Cliente> resultPage = getPage(pageable);
+
+    return resultPage != null ? resultPage.getTotalElements() : 0;
   }
 
   @Override
@@ -59,5 +102,12 @@ public class ClienteDataProvider extends SortableDataProvider<Cliente, String> {
   public void detach() {
     super.detach();
     this.lastPageCache = null;
+    this.cachedNome = null;
+    this.cachedCpfCnpj = null;
+    this.cachedCidade = null;
+
+    nomeFilterModel.detach();
+    cpfCnpjFilterModel.detach();
+    cidadeFilterModel.detach();
   }
 }

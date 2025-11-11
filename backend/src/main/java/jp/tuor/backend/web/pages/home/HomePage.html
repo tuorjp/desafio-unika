@@ -26,17 +26,22 @@
                 <a wicket:id="novoButton" class="btn btn-primary">Novo <i class="bi bi-plus-lg"></i></a>
             </div>
         </div>
-        <div class="filters-container">
+        <form wicket:id="filterForm" class="filters-container">
             <div>
-                <input type="text" class="form-control" placeholder="Nome">
+                <input wicket:id="nomeFilter" type="text" class="form-control" placeholder="Nome">
             </div>
             <div>
-                <input type="text" class="form-control" placeholder="Cidade">
+                <input wicket:id="cidadeFilter" type="text" class="form-control" placeholder="Cidade">
             </div>
             <div>
-                <input type="text" class="form-control" placeholder="CPF/CNPJ">
+                <input wicket:id="cpfCnpjFilter" type="text" class="form-control" placeholder="CPF/CNPJ">
             </div>
-        </div>
+            <div>
+                <button wicket:id="searchButton" type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
     </div>
 
     <div wicket:id="tableContainer">

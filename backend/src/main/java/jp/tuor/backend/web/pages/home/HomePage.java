@@ -21,6 +21,7 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.link.ResourceLink;
@@ -63,6 +64,10 @@ public class HomePage extends BasePage {
   private AjaxLink<Void> confirmButton;
   private AbstractResource excelResource;
   private AbstractResource pdfResource;
+
+  private IModel<String> nomeFilterModel;
+  private IModel<String> cidadeFilterModel;
+  private IModel<String> cpfCnpjFilterModel;
 
   //--------------------------------------------------------------------------------------------------------
   //métodos de renderização e configuração
@@ -119,8 +124,37 @@ public class HomePage extends BasePage {
     confirmDeleteModal.add(confirmButton);
     add(confirmDeleteModal);
 
+    //filtros da tabela
+    nomeFilterModel = Model.of((String) null);
+    cidadeFilterModel = Model.of((String) null);
+    cpfCnpjFilterModel = Model.of((String) null);
+
+    Form<?> filterForm = new Form<>("filterForm");
+    add(filterForm);
+
+    filterForm.add(new TextField<>("nomeFilter", nomeFilterModel));
+    filterForm.add(new TextField<>("cidadeFilter", cidadeFilterModel));
+    filterForm.add(new TextField<>("cpfCnpjFilter", cpfCnpjFilterModel));
+
+    //botão de busca da tabela
+    filterForm.add(new AjaxButton("searchButton") {
+      @Override
+      protected void onSubmit(AjaxRequestTarget target) {
+        dataProvider.detach();
+
+        atualizarVisibilidadeTabela();
+
+        target.add(tableContainer, emptyMessage);
+      }
+    });
+
     //date provider da tabela
-    dataProvider = new ClienteDataProvider(clienteService);
+    dataProvider = new ClienteDataProvider(
+      clienteService,
+      nomeFilterModel,
+      cpfCnpjFilterModel,
+      cidadeFilterModel
+    );
 
     //container da tabela e paginação
     tableContainer = new WebMarkupContainer("tableContainer");
