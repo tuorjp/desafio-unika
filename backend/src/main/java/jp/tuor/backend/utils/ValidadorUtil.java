@@ -133,6 +133,8 @@ public class ValidadorUtil {
           if (campoEndereco.isAnnotationPresent(Obrigatorio.class)) {
             campoEndereco.setAccessible(true);
 
+            String nomeCampo = campoEndereco.getName();
+
             if (campoEndereco.getName().equals("enderecoPrincipal")) {
               continue;
             }
@@ -142,8 +144,27 @@ public class ValidadorUtil {
 
               if (valorCampo == null) {
                 erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' é obrigatório.");
-              } else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
+              }
+              else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
                 erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' não pode estar em branco.");
+              }
+              else if(nomeCampo.equals("numero")) {
+                String valorString = ((String) valorCampo).trim();
+                boolean isSemNumero = valorString.equalsIgnoreCase("s/n");
+                boolean isNumero = valorString.matches("\\d+");
+
+                if(!isNumero && !isSemNumero) {
+                  erros.add(prefixo + "O campo número deve ser um número válido ou s/n." );
+                }
+              }
+              else if (nomeCampo.equals("cep")) {
+                String cepValor = ((String) valorCampo).trim();
+
+                String cepLimpo = cepValor.replaceAll("[^\\d]", "");
+
+                if (cepLimpo.length() != 8) {
+                  erros.add(prefixo + "O campo 'cep' é inválido (deve conter 8 dígitos).");
+                }
               }
             } catch (IllegalAccessException e) {
               System.out.println(e.getMessage());

@@ -182,7 +182,7 @@
                 <div class="row g-3 mt-2">
                   <div class="col-md-6">
                     <label class="form-label">Logradouro *</label>
-                    <input type="text" class="form-control" formControlName="logradouro"
+                    <input type="text" class="form-control" formControlName="logradouro" [readonly]="true"
                            [class.is-invalid]="endGroup.get('logradouro')?.invalid && (endGroup.get('logradouro')?.dirty || endGroup.get('logradouro')?.touched)">
                     <div
                       *ngIf="endGroup?.get('logradouro')?.invalid && (endGroup?.get('logradouro')?.dirty || endGroup?.get('logradouro')?.touched)"
@@ -216,7 +216,7 @@
                 <div class="row g-3 mt-1">
                   <div class="col-md-3">
                     <label class="form-label">Bairro *</label>
-                    <input type="text" class="form-control" formControlName="bairro"
+                    <input type="text" class="form-control" formControlName="bairro" [readonly]="true"
                            [class.is-invalid]="endGroup.get('bairro')?.invalid && (endGroup.get('bairro')?.dirty || endGroup.get('bairro')?.touched)">
                     <div
                       *ngIf="endGroup?.get('bairro')?.invalid && (endGroup?.get('bairro')?.dirty || endGroup?.get('bairro')?.touched)"
@@ -228,7 +228,7 @@
                   </div>
                   <div class="col-md-3">
                     <label class="form-label">Cidade *</label>
-                    <input type="text" class="form-control" formControlName="cidade"
+                    <input type="text" class="form-control" formControlName="cidade" [readonly]="true"
                            [class.is-invalid]="endGroup.get('cidade')?.invalid && (endGroup.get('cidade')?.dirty || endGroup.get('cidade')?.touched)">
                     <div
                       *ngIf="endGroup?.get('cidade')?.invalid && (endGroup?.get('cidade')?.dirty || endGroup?.get('cidade')?.touched)"
@@ -240,7 +240,7 @@
                   </div>
                   <div class="col-md-1">
                     <label class="form-label">UF *</label>
-                    <input type="text" class="form-control" formControlName="estado"
+                    <input type="text" class="form-control" formControlName="estado" [readonly]="true"
                            [class.is-invalid]="endGroup.get('estado')?.invalid && (endGroup.get('estado')?.dirty || endGroup.get('estado')?.touched)">
                     <div
                       *ngIf="endGroup?.get('estado')?.invalid && (endGroup?.get('estado')?.dirty || endGroup?.get('estado')?.touched)"
