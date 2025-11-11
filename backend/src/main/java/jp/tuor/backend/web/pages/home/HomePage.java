@@ -45,6 +45,8 @@ import java.util.Map;
 
 @WicketHomePage
 public class HomePage extends BasePage {
+
+  //spring
   @SpringBean
   private ClienteService clienteService;
   @SpringBean
@@ -52,79 +54,55 @@ public class HomePage extends BasePage {
   @SpringBean
   private ReportService reportService;
 
-  private final WebMarkupContainer tableContainer;
-  private final WebMarkupContainer emptyMessage;
-  private final FeedbackPanel feedbackPanel;
-  private final SortableDataProvider<Cliente, String> dataProvider;
-  private WebMarkupContainer confirmDeleteModal;
-  private final IModel<String> confirmMessageModel;
-  private final IModel<Long> clienteIdParaExcluirModel;
-  private final ClienteFormPanel clienteFormModal;
-  private Label confirmMessage;
-  private AjaxLink<Void> confirmButton;
-  private AbstractResource excelResource;
-  private AbstractResource pdfResource;
+  //componentes principais da página
+  private FeedbackPanel feedbackPanel;
+  private WebMarkupContainer tableContainer;
+  private WebMarkupContainer emptyMessage;
+  private SortableDataProvider<Cliente, String> dataProvider;
 
+  //filtros da tabela
   private IModel<String> nomeFilterModel;
   private IModel<String> cidadeFilterModel;
   private IModel<String> cpfCnpjFilterModel;
 
-  //--------------------------------------------------------------------------------------------------------
-  //métodos de renderização e configuração
-  public HomePage() {
-    //título simples
-    super();
-    String str = "Clientes";
-    add(new Label("titulo", str));
+  //componentes dos modais
+  private ClienteFormPanel clienteFormModal;
+  private WebMarkupContainer confirmDeleteModal;
+  private IModel<String> confirmMessageModel;
+  private IModel<Long> clienteIdParaExcluirModel;
+  private Label confirmMessage;
 
+  //recursos para download
+  private AbstractResource excelResource;
+  private AbstractResource pdfResource;
+
+  public HomePage() {
+    super();
+    add(new Label("titulo", "Clientes"));
+
+    //chamando inicialização dos componentes
+    addFeedbackPanel();
+    addFilterFormAndDataProvider();
+    addDataTableAndPagination();
+    addPageActions();
+    addModals();
+
+    atualizarVisibilidadeTabela();
+  }
+
+  //--------------------------------------------------------------------------------------------------------
+  //métodos de inicialização dos componentes
+  //--------------------------------------------------------------------------------------------------------
+
+  //feedBackPanel
+  private void addFeedbackPanel() {
     feedbackPanel = new FeedbackPanel("feedbackPanel");
     feedbackPanel.setOutputMarkupId(true);
     add(feedbackPanel);
+  }
 
-    //modal delete
-    confirmMessageModel = Model.of("");
-    clienteIdParaExcluirModel = Model.of((Long) null);
-    confirmDeleteModal = new WebMarkupContainer("confirmDeleteModal");
-    confirmDeleteModal.setOutputMarkupId(true);
-    confirmMessage = new Label("confirmMessage", confirmMessageModel);
-    confirmMessage.setOutputMarkupId(true);
-    confirmDeleteModal.add(confirmMessage);
-
-    confirmDeleteModal.add(new AjaxLink<Void>("cancelButton") {
-      @Override
-      public void onClick(AjaxRequestTarget target) {
-        target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).hide();");
-      }
-    });
-
-    confirmButton = new AjaxLink<Void>("confirmButton") {
-      @Override
-      public void onClick(AjaxRequestTarget target) {
-        Long idParaExcluir = clienteIdParaExcluirModel.getObject();
-        if (idParaExcluir != null) {
-          try {
-            clienteService.deletarCliente(idParaExcluir);
-            success("Cliente excluído com sucesso.");
-
-            dataProvider.detach();
-            atualizarVisibilidadeTabela();
-            target.add(tableContainer, emptyMessage, feedbackPanel);
-
-          } catch (Exception e) {
-            error("Erro ao excluir cliente: " + e.getMessage());
-            target.add(feedbackPanel);
-          }
-        }
-        //fecha o modal
-        target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).hide();");
-        clienteIdParaExcluirModel.setObject(null); //limpa o ID
-      }
-    };
-
-    confirmDeleteModal.add(confirmButton);
-    add(confirmDeleteModal);
-
-    //filtros da tabela
+  //inicializa os IModels dos filtros, o formulário de filtro e o DataProvider
+  private void addFilterFormAndDataProvider() {
     nomeFilterModel = Model.of((String) null);
     cidadeFilterModel = Model.of((String) null);
     cpfCnpjFilterModel = Model.of((String) null);
@@ -136,40 +114,41 @@ public class HomePage extends BasePage {
     filterForm.add(new TextField<>("cidadeFilter", cidadeFilterModel));
     filterForm.add(new TextField<>("cpfCnpjFilter", cpfCnpjFilterModel));
 
-    //botão de busca da tabela
+    //botão de busca
     filterForm.add(new AjaxButton("searchButton") {
       @Override
       protected void onSubmit(AjaxRequestTarget target) {
-        dataProvider.detach();
-
+        dataProvider.detach(); //limpa o cache do provider
         atualizarVisibilidadeTabela();
-
-        target.add(tableContainer, emptyMessage);
+        target.add(tableContainer, emptyMessage); //redesenha a tabela
       }
     });
 
-    //date provider da tabela
+    //dataProvider (depende dos modelos de filtro)
     dataProvider = new ClienteDataProvider(
       clienteService,
       nomeFilterModel,
       cpfCnpjFilterModel,
       cidadeFilterModel
     );
+  }
 
-    //container da tabela e paginação
+  //inicializa o container da tabela, o DataView, a paginação e a mensagem de vazio
+  private void addDataTableAndPagination() {
+    //container da tabela
     tableContainer = new WebMarkupContainer("tableContainer");
     tableContainer.setOutputMarkupId(true);
     tableContainer.setOutputMarkupPlaceholderTag(true);
     add(tableContainer);
 
-    //data view para a tabela
+    //dataView
     DataView<Cliente> dataView = getClienteDataView(dataProvider);
     tableContainer.add(dataView);
 
-    //paging navigator
+    //paginação
     tableContainer.add(new PagingNavigator("pagingNavigator", dataView));
 
-    //label total de registros
+    //label de total
     IModel<String> totalMsgModel = new LoadableDetachableModel<String>() {
       @Override
       protected String load() {
@@ -179,87 +158,57 @@ public class HomePage extends BasePage {
     };
     tableContainer.add(new Label("totalRegistros", totalMsgModel));
 
-    //configurações de visibilidade
-    long totalItems = dataProvider.size();
-    tableContainer.setVisible(totalItems > 0);
-
+    //mensagem de "Nenhum cliente encontrado"
     emptyMessage = new WebMarkupContainer("emptyMessage");
     emptyMessage.setOutputMarkupId(true);
     emptyMessage.setOutputMarkupPlaceholderTag(true);
-    emptyMessage.setVisible(totalItems == 0);
     add(emptyMessage);
-    atualizarVisibilidadeTabela();
+  }
 
-    //importação do arquivo .xlsx
-    //cria campo de upload
+  //ações exportar, importar, novo
+  private void addPageActions() {
+    addImportForm();
+    addExportButtons();
+    addNovoClienteButton();
+  }
+
+  //formulário de importação xlsx
+  private void addImportForm() {
     final FileUploadField fileUploadField = new FileUploadField("fileUpload");
-    //cria form
     Form<?> importForm = new Form<>("importForm");
     importForm.setMultiPart(true);
     importForm.add(fileUploadField);
-
-    //botão submit com ajax
     criarBotaoImportSubmitAjax(importForm, fileUploadField);
     add(importForm);
+  }
 
-    //modal do formulário
-    clienteFormModal = new ClienteFormPanel("clienteFormModal") {
-      @Override
-      public void onSave(AjaxRequestTarget target) {
-        dataProvider.detach();
-        atualizarVisibilidadeTabela();
-        target.add(tableContainer, emptyMessage, feedbackPanel);
-        success("Cliente salvo com sucesso.");
-        target.add(feedbackPanel);
-      }
-
-      @Override
-      public void onCancel(AjaxRequestTarget target) {
-        //nada
-      }
-    };
-
-    add(clienteFormModal);
-
-    //botão criar novo usuário
-    add(
-      new AjaxLink<Void>("novoButton") {
-        @Override
-        public void onClick(AjaxRequestTarget target) {
-          clienteFormModal.openForCreate(target);
-        }
-      }
-    );
-
+  //botões de exportar xlsx e PDF
+  private void addExportButtons() {
+    //botão Exportar Excel
     excelResource = new AbstractResource() {
       @Override
       protected ResourceResponse newResourceResponse(Attributes attributes) {
         ResourceResponse response = new ResourceResponse();
-        //o tipo de arquivo
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        //o nome do arquivo e força o download (attachment)
         response.setContentDisposition(ContentDisposition.ATTACHMENT);
         response.setFileName("clientes.xlsx");
 
-        //o "corpo" da resposta
         response.setWriteCallback(new WriteCallback() {
           @Override
           public void writeData(Attributes attributes) throws IOException {
             try (ByteArrayInputStream bis = clienteService.gerarRelatorioExcel()) {
-              //escreve o stream do seu service direto para a resposta
               bis.transferTo(attributes.getResponse().getOutputStream());
             } catch (Exception e) {
               throw new IOException("Erro ao gerar relatório Excel", e);
             }
           }
         });
-
         return response;
       }
     };
-
     add(new ResourceLink<Void>("exportXlsxButton", excelResource));
 
+    //botão Exportar PDF
     pdfResource = new AbstractResource() {
       @Override
       protected ResourceResponse newResourceResponse(Attributes attributes) {
@@ -279,19 +228,97 @@ public class HomePage extends BasePage {
             }
           }
         });
-
         return response;
       }
     };
-
-    ResourceLink<Void> pdfLink = new ResourceLink<>("exportPdfButton", pdfResource);
-    add(pdfLink);
+    add(new ResourceLink<Void>("exportPdfButton", pdfResource));
   }
+
+  //botão novo cliente
+  private void addNovoClienteButton() {
+    add(new AjaxLink<Void>("novoButton") {
+      @Override
+      public void onClick(AjaxRequestTarget target) {
+        clienteFormModal.openForCreate(target);
+      }
+    });
+  }
+
+  //modais
+  private void addModals() {
+    addDeleteConfirmModal();
+    addClienteFormModal();
+  }
+
+  //modal delete
+  private void addDeleteConfirmModal() {
+    confirmMessageModel = Model.of("");
+    clienteIdParaExcluirModel = Model.of((Long) null);
+    confirmDeleteModal = new WebMarkupContainer("confirmDeleteModal");
+    confirmDeleteModal.setOutputMarkupId(true);
+
+    confirmMessage = new Label("confirmMessage", confirmMessageModel);
+    confirmMessage.setOutputMarkupId(true);
+    confirmDeleteModal.add(confirmMessage);
+
+    //botão cancelar do modal
+    confirmDeleteModal.add(new AjaxLink<Void>("cancelButton") {
+      @Override
+      public void onClick(AjaxRequestTarget target) {
+        target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).hide();");
+      }
+    });
+
+    //botão confirmar Exclusão
+    AjaxLink<Void> confirmButton = new AjaxLink<Void>("confirmButton") {
+      @Override
+      public void onClick(AjaxRequestTarget target) {
+        Long idParaExcluir = clienteIdParaExcluirModel.getObject();
+        if (idParaExcluir != null) {
+          try {
+            clienteService.deletarCliente(idParaExcluir);
+            success("Cliente excluído com sucesso.");
+            dataProvider.detach();
+            atualizarVisibilidadeTabela();
+            target.add(tableContainer, emptyMessage, feedbackPanel);
+          } catch (Exception e) {
+            error("Erro ao excluir cliente: " + e.getMessage());
+            target.add(feedbackPanel);
+          }
+        }
+        target.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).hide();");
+        clienteIdParaExcluirModel.setObject(null);
+      }
+    };
+    confirmDeleteModal.add(confirmButton);
+    add(confirmDeleteModal);
+  }
+
+  //modal formulário do cliente
+  private void addClienteFormModal() {
+    clienteFormModal = new ClienteFormPanel("clienteFormModal") {
+      @Override
+      public void onSave(AjaxRequestTarget target) {
+        dataProvider.detach();
+        atualizarVisibilidadeTabela();
+        target.add(tableContainer, emptyMessage, feedbackPanel);
+        success("Cliente salvo com sucesso.");
+        target.add(feedbackPanel);
+      }
+
+      @Override
+      public void onCancel(AjaxRequestTarget target) {}
+    };
+    add(clienteFormModal);
+  }
+
+  //--------------------------------------------------------------------------------------------------------
+  //renderhead configurações css e js
+  //--------------------------------------------------------------------------------------------------------
 
   @Override
   public void renderHead(IHeaderResponse response) {
     super.renderHead(response);
-
     response.render(CssHeaderItem.forReference(new PackageResourceReference(HomePage.class, "HomePage.css")));
     String modalId = confirmDeleteModal.getMarkupId();
     response.render(OnDomReadyHeaderItem.forScript(
@@ -300,14 +327,18 @@ public class HomePage extends BasePage {
   }
 
   //--------------------------------------------------------------------------------------------------------
-  //métodos auxiliares resgatar/tratar dados
+  //métodos auxiliares preenchimento de dados e UI
+  //--------------------------------------------------------------------------------------------------------
+
+  //dataview
   private DataView<Cliente> getClienteDataView(SortableDataProvider<Cliente, String> dataProvider) {
     DataView<Cliente> dataView = new DataView<Cliente>("clienteList", dataProvider) {
       @Override
       protected void populateItem(Item<Cliente> item) {
         Cliente cliente = item.getModelObject();
+        IModel<Cliente> clienteIModel = item.getModel();
 
-        //dados do cliente
+        //dados
         item.add(new Label("id", cliente.getId()));
         item.add(new Label("nome", StringUtils.getNomeCliente(cliente)));
         item.add(new Label("email", cliente.getEmail() != null ? cliente.getEmail() : "n/a"));
@@ -315,54 +346,20 @@ public class HomePage extends BasePage {
         item.add(new Label("data", StringUtils.getDataCliente(cliente)));
         item.add(new Label("endereco", StringUtils.getEnderecoPrincipal(cliente.getEnderecos())));
 
-        //badge do status
+        //status
         Label statusLabel = new Label("status", cliente.isAtivo() ? "Ativo" : "Inativo");
         statusLabel.add(new AttributeAppender("class", cliente.isAtivo() ? "text-bg-success" : "text-bg-danger"));
         item.add(statusLabel);
 
-        //ações da tabela
-        //delete
-        IModel<Cliente> clienteIModel = item.getModel();
-        AjaxLink<Cliente> deleteLink = criaBotaoDelete(clienteIModel);
-        item.add(deleteLink);
-
-        //edit
-        AjaxLink<Cliente> editLink = new AjaxLink<Cliente>("editLink", clienteIModel) {
+        //ações
+        item.add(criaBotaoDelete(clienteIModel)); //delete
+        item.add(new AjaxLink<Cliente>("editLink", clienteIModel) {//edit
           @Override
           public void onClick(AjaxRequestTarget target) {
             clienteFormModal.openForEdit(getModel(), target);
           }
-        };
-        item.add(editLink);
-
-        //download relatório
-        AbstractResource individualPdfResource = new AbstractResource() {
-          @Override
-          protected ResourceResponse newResourceResponse(Attributes attributes) {
-            Long clienteId = clienteIModel.getObject().getId();
-
-            ResourceResponse response = new ResourceResponse();
-            response.setContentType("application/pdf");
-            response.setContentDisposition(ContentDisposition.ATTACHMENT);
-            response.setFileName("cliente_" + clienteId + ".pdf");
-
-            response.setWriteCallback(new WriteCallback() {
-              @Override
-              public void writeData(Attributes attributes) throws IOException {
-                try {
-                  byte[] pdfBytes = reportService.gerarRelatorioClienteIndividual(clienteId);
-                  attributes.getResponse().getOutputStream().write(pdfBytes);
-                } catch (Exception e) {
-                  throw new IOException("Erro ao gerar PDF individual para ID: " + clienteId, e);
-                }
-              }
-            });
-            return response;
-          }
-        };
-
-        ResourceLink<Void> downloadLink = new ResourceLink<>("downloadLink", individualPdfResource);
-        item.add(downloadLink);
+        });
+        item.add(criaBotaoDownloadPdfIndividual(clienteIModel)); //download
       }
     };
 
@@ -370,20 +367,47 @@ public class HomePage extends BasePage {
     return dataView;
   }
 
-  //--------------------------------------------------------------------------------------------------------
-  //métodos auxiliares UI
+  //botão para download de PDF individual
+  private ResourceLink<Void> criaBotaoDownloadPdfIndividual(IModel<Cliente> clienteIModel) {
+    AbstractResource individualPdfResource = new AbstractResource() {
+      @Override
+      protected ResourceResponse newResourceResponse(Attributes attributes) {
+        Long clienteId = clienteIModel.getObject().getId();
+        ResourceResponse response = new ResourceResponse();
+        response.setContentType("application/pdf");
+        response.setContentDisposition(ContentDisposition.ATTACHMENT);
+        response.setFileName("cliente_" + clienteId + ".pdf");
+
+        response.setWriteCallback(new WriteCallback() {
+          @Override
+          public void writeData(Attributes attributes) throws IOException {
+            try {
+              byte[] pdfBytes = reportService.gerarRelatorioClienteIndividual(clienteId);
+              attributes.getResponse().getOutputStream().write(pdfBytes);
+            } catch (Exception e) {
+              throw new IOException("Erro ao gerar PDF individual para ID: " + clienteId, e);
+            }
+          }
+        });
+        return response;
+      }
+    };
+    return new ResourceLink<>("downloadLink", individualPdfResource);
+  }
+
+  //atualiza tabela e mensagem caso n haja clientes
   private void atualizarVisibilidadeTabela() {
     long totalItems = dataProvider.size();
     tableContainer.setVisible(totalItems > 0);
     emptyMessage.setVisible(totalItems == 0);
   }
 
+  //adiciona lógica de ajax ao botão de submit do formulário de importação
   private void criarBotaoImportSubmitAjax(Form<?> importForm, FileUploadField fileUploadField) {
     importForm.add(new AjaxButton("importSubmitButton", importForm) {
       @Override
       protected void onSubmit(AjaxRequestTarget target) {
         final FileUpload fileUpload = fileUploadField.getFileUpload();
-
         if (fileUpload == null) {
           error("Por favor, selecione um arquivo .xlsx para importar.");
           target.add(feedbackPanel);
@@ -391,15 +415,12 @@ public class HomePage extends BasePage {
         }
 
         MultipartFile multipartFile = new WicketMultipartFile(fileUpload);
-
         try {
           Map<String, Object> resultado = importService.importarClientesExcel(multipartFile);
-
           Boolean sucesso = (Boolean) resultado.getOrDefault("sucesso", false);
           if (sucesso) {
             Integer criados = (Integer) resultado.get("clientesCriados");
             success("Importação concluída. " + criados + " clientes salvos.");
-
             dataProvider.detach();
             atualizarVisibilidadeTabela();
             target.add(tableContainer, emptyMessage);
@@ -411,37 +432,30 @@ public class HomePage extends BasePage {
               error("Importação falhou.");
             }
           }
-        } catch (IOException e) {
-          error("Erro ao ler arquivo " + e.getMessage());
         } catch (Exception e) {
-          error("Erro inesperado " + e.getMessage());
+          error("Erro inesperado: " + e.getMessage());
         }
         target.add(feedbackPanel);
       }
 
+      @Override
       protected void onError(AjaxRequestTarget target) {
-        //caso o wicket der um erro (ex arquivo muito grande)
         target.add(feedbackPanel);
       }
     });
   }
 
+  //cria o link de excluir para cada linha da tabela
   private AjaxLink<Cliente> criaBotaoDelete(IModel<Cliente> clienteIModel) {
-    AjaxLink<Cliente> deleteLink = new AjaxLink<Cliente>("deleteLink") {
+    return new AjaxLink<Cliente>("deleteLink", clienteIModel) {
       @Override
       public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-        Cliente cliente = clienteIModel.getObject();
-
-        String nome = StringUtils.getNomeCliente(cliente);
-        confirmMessageModel.setObject("Tem certeza que deseja excluir o cliente " + nome + "?");
+        Cliente cliente = getModelObject();
+        confirmMessageModel.setObject("Tem certeza que deseja excluir o cliente " + StringUtils.getNomeCliente(cliente) + "?");
         clienteIdParaExcluirModel.setObject(cliente.getId());
-
         ajaxRequestTarget.add(confirmMessage);
-
-        ajaxRequestTarget
-          .appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).show();");
+        ajaxRequestTarget.appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).show();");
       }
     };
-    return deleteLink;
   }
 }
