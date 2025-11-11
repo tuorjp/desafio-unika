@@ -295,7 +295,7 @@ public class HomePage extends BasePage {
     response.render(CssHeaderItem.forReference(new PackageResourceReference(HomePage.class, "HomePage.css")));
     String modalId = confirmDeleteModal.getMarkupId();
     response.render(OnDomReadyHeaderItem.forScript(
-            "new bootstrap.Modal(document.getElementById('" + modalId + "'));"
+      "new bootstrap.Modal(document.getElementById('" + modalId + "'));"
     ));
   }
 
@@ -439,7 +439,7 @@ public class HomePage extends BasePage {
         ajaxRequestTarget.add(confirmMessage);
 
         ajaxRequestTarget
-                .appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).show();");
+          .appendJavaScript("bootstrap.Modal.getInstance(document.getElementById('" + confirmDeleteModal.getMarkupId() + "')).show();");
       }
     };
     return deleteLink;

@@ -102,7 +102,7 @@ public class ClienteServiceTest {
   void novoCliente_DeveLancarExcecaoSeValidadorFalhar() {
     //simula o validador: quando chamado, lança uma exceção
     Mockito.doThrow(new CampoInvalidoException("Erro de validação"))
-            .when(validadorUtil).validarCamposObrigatorios(clienteDTO_PF);
+      .when(validadorUtil).validarCamposObrigatorios(clienteDTO_PF);
 
     //verifica se a exceção correta é lançada
     Assertions.assertThrows(CampoInvalidoException.class, () -> {
@@ -121,7 +121,7 @@ public class ClienteServiceTest {
 
     //repositório ACHA um cliente com o mesmo CPF
     Mockito.when(clienteRepository.findByCpf(clienteDTO_PF.getCpf()))
-            .thenReturn(Optional.of(new Cliente()));
+      .thenReturn(Optional.of(new Cliente()));
 
     Assertions.assertThrows(CPFCNPJDuplicadoException.class, () -> {
       clienteService.novoCliente(clienteDTO_PF);

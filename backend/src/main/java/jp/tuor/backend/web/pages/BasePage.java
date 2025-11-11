@@ -25,19 +25,19 @@ public class BasePage extends WebPage {
     super.renderHead(response);
 
     response.render(CssHeaderItem.forReference(
-            new UrlResourceReference(Url.parse("/css/styles.css")))
+      new UrlResourceReference(Url.parse("/css/styles.css")))
     );
 
     response.render(CssHeaderItem.forReference(
-            new UrlResourceReference(Url.parse("/css/bootstrap.min.css")))
+      new UrlResourceReference(Url.parse("/css/bootstrap.min.css")))
     );
 
     response.render(CssHeaderItem.forReference(
-            new UrlResourceReference(Url.parse("/css/bootstrap-icons.min.css")))
+      new UrlResourceReference(Url.parse("/css/bootstrap-icons.min.css")))
     );
 
     response.render(JavaScriptHeaderItem.forReference(
-            new UrlResourceReference(Url.parse("/js/bootstrap.bundle.min.js")))
+      new UrlResourceReference(Url.parse("/js/bootstrap.bundle.min.js")))
     );
   }
 }

@@ -20,12 +20,12 @@ public class ViaCepResponse {
   @Override
   public String toString() {
     return "ViaCepResponse{" +
-            "logradouro='" + logradouro + '\'' +
-            ", complemento='" + complemento + '\'' +
-            ", bairro='" + bairro + '\'' +
-            ", localidade='" + localidade + '\'' +
-            ", uf='" + uf + '\'' +
-            ", erro=" + erro +
-            '}';
+      "logradouro='" + logradouro + '\'' +
+      ", complemento='" + complemento + '\'' +
+      ", bairro='" + bairro + '\'' +
+      ", localidade='" + localidade + '\'' +
+      ", uf='" + uf + '\'' +
+      ", erro=" + erro +
+      '}';
   }
 }

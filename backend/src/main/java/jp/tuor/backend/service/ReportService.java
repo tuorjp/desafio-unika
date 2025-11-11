@@ -26,7 +26,7 @@ public class ReportService {
 
   public byte[] gerarRelatorioClienteIndividual(Long clienteId) throws FileNotFoundException, JRException {
     Optional<Cliente> cliente = clienteRepository
-            .findById(clienteId);
+      .findById(clienteId);
 
     if (cliente.isPresent()) {
       Cliente cl = cliente.get();

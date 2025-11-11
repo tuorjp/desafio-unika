@@ -72,9 +72,9 @@ public class ClienteExcelExportService {
     }
 
     return enderecos
-            .stream()
-            .map(e ->
-                    String.format("%s, %s, %s - %s (%s)", e.getLogradouro(), e.getNumero(), e.getBairro(), e.getCidade(), e.getEstado()))
-            .collect(Collectors.joining(" | "));
+      .stream()
+      .map(e ->
+        String.format("%s, %s, %s - %s (%s)", e.getLogradouro(), e.getNumero(), e.getBairro(), e.getCidade(), e.getEstado()))
+      .collect(Collectors.joining(" | "));
   }
 }

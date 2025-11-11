@@ -29,7 +29,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.springframework.web.client.RestTemplate;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -247,7 +246,9 @@ public abstract class ClienteFormPanel extends Panel {
         };
 
         item.add(removeLink);
-      };
+      }
+
+      ;
     };
 
     enderecosView.setReuseItems(false);
@@ -260,10 +261,10 @@ public abstract class ClienteFormPanel extends Panel {
         target.add(enderecosContainer);
 
         String initMasksScript = String.format(
-                "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
-                        "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
-                        "});",
-                enderecosContainer.getMarkupId() //pega o ID do container de endereços
+          "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
+            "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
+            "});",
+          enderecosContainer.getMarkupId() //pega o ID do container de endereços
         );
         target.appendJavaScript(initMasksScript);
       }
@@ -300,12 +301,12 @@ public abstract class ClienteFormPanel extends Panel {
         } catch (Exception e) {
           String rawMessages = e.getMessage();
 
-          if(rawMessages != null && rawMessages.contains(";")) {
+          if (rawMessages != null && rawMessages.contains(";")) {
             String[] erros = rawMessages.split(";");
             error("Erro ao salvar: ");
 
-            for(String msg: erros) {
-              if(!msg.trim().isEmpty()) {
+            for (String msg : erros) {
+              if (!msg.trim().isEmpty()) {
                 error(msg.trim());
               }
             }
@@ -358,7 +359,7 @@ public abstract class ClienteFormPanel extends Panel {
 
     ClienteDTO dto = clienteMapper.clienteParaDTO(clienteModel.getObject());
 
-    if(dto.getEnderecos() == null || dto.getEnderecos().isEmpty()) {
+    if (dto.getEnderecos() == null || dto.getEnderecos().isEmpty()) {
       dto.setEnderecos(new ArrayList<>());
       dto.getEnderecos().add(new EnderecoDTO());
     }
@@ -380,21 +381,21 @@ public abstract class ClienteFormPanel extends Panel {
 
     // Cria o objeto JS do Bootstrap no cliente
     response.render(OnDomReadyHeaderItem.forScript(
-            "new bootstrap.Modal(document.getElementById('" + modal.getMarkupId() + "'));"
+      "new bootstrap.Modal(document.getElementById('" + modal.getMarkupId() + "'));"
     ));
 
     String initMasksScript = String.format(
-            "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
-                    "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
-                    "});",
-            modal.getMarkupId()
+      "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
+        "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
+        "});",
+      modal.getMarkupId()
     );
 
     String bootstrapListenerScript = String.format(
-            "const modalEl = document.getElementById('%s');" +
-                    "modalEl.addEventListener('shown.bs.modal', () => { %s });",
-            modal.getMarkupId(),
-            initMasksScript
+      "const modalEl = document.getElementById('%s');" +
+        "modalEl.addEventListener('shown.bs.modal', () => { %s });",
+      modal.getMarkupId(),
+      initMasksScript
     );
 
     response.render(OnDomReadyHeaderItem.forScript(bootstrapListenerScript));

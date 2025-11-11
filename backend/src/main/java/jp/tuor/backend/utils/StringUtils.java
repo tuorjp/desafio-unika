@@ -35,19 +35,19 @@ public class StringUtils {
     }
 
     Endereco principal = enderecos.stream()
-            .filter(Endereco::isEnderecoPrincipal)
-            .findFirst()
-            .orElse(null);
+      .filter(Endereco::isEnderecoPrincipal)
+      .findFirst()
+      .orElse(null);
 
     if (principal == null) {
       principal = enderecos.get(0);
     }
 
     return String.format("%s, %s, %s-%s",
-            principal.getLogradouro(),
-            principal.getNumero(),
-            principal.getCidade(),
-            principal.getEstado()
+      principal.getLogradouro(),
+      principal.getNumero(),
+      principal.getCidade(),
+      principal.getEstado()
     );
   }
 

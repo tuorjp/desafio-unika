@@ -35,23 +35,23 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long>, JpaSpec
 
   //JPQL
   @Query(
-          "SELECT DISTINCT c FROM Cliente c " +
-                  "JOIN c.enderecos e " +
-                  "WHERE c.tipoPessoa = :tipoPessoa AND e.estado = :estado"
+    "SELECT DISTINCT c FROM Cliente c " +
+      "JOIN c.enderecos e " +
+      "WHERE c.tipoPessoa = :tipoPessoa AND e.estado = :estado"
   )
   List<Cliente> findByTipoPessoaAndEstado(
-          @Param("tipoPessoa") TipoPessoa tipoPessoa,
-          @Param("estado") String estado
+    @Param("tipoPessoa") TipoPessoa tipoPessoa,
+    @Param("estado") String estado
   );
 
   //SQL puro
   @Query(
-          value = "SELECT e.cidade AS cidade, COUNT(DISTINCT c.id) AS totalClientes " +
-                  "FROM clientes c " +
-                  "JOIN enderecos e ON c.id = e.cliente_id " +
-                  "GROUP BY e.cidade " +
-                  "ORDER BY totalClientes DESC",
-          nativeQuery = true
+    value = "SELECT e.cidade AS cidade, COUNT(DISTINCT c.id) AS totalClientes " +
+      "FROM clientes c " +
+      "JOIN enderecos e ON c.id = e.cliente_id " +
+      "GROUP BY e.cidade " +
+      "ORDER BY totalClientes DESC",
+    nativeQuery = true
   )
   List<ResumoClientesPorCidade> getResumoClientesPorCidade();
 

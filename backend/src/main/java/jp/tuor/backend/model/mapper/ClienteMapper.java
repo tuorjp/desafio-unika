@@ -68,10 +68,10 @@ public class ClienteMapper {
     for (EnderecoDTO dto : enderecosDTO) {
       if (dto.getId() != null) {
         Endereco existente = enderecosAtuais
-                .stream()
-                .filter(e -> e.getId().equals(dto.getId()))
-                .findFirst()
-                .orElseThrow(() -> new EnderecoNaoEncontradoException("Endereço não encontrado: " + dto.getId()));
+          .stream()
+          .filter(e -> e.getId().equals(dto.getId()))
+          .findFirst()
+          .orElseThrow(() -> new EnderecoNaoEncontradoException("Endereço não encontrado: " + dto.getId()));
 
         preencherEnderecoComDTO(existente, dto);
       } else {
@@ -83,11 +83,11 @@ public class ClienteMapper {
     }
 
     enderecosAtuais.removeIf(
-            e -> e.getId() != null &&
-                    enderecosDTO.stream()
-                            .map(EnderecoDTO::getId)
-                            .filter(Objects::nonNull)
-                            .noneMatch(id -> id.equals(e.getId()))
+      e -> e.getId() != null &&
+        enderecosDTO.stream()
+          .map(EnderecoDTO::getId)
+          .filter(Objects::nonNull)
+          .noneMatch(id -> id.equals(e.getId()))
     );
   }
 
@@ -126,9 +126,9 @@ public class ClienteMapper {
 
     if (cliente.getEnderecos() != null && !cliente.getEnderecos().isEmpty()) {
       dto.setEnderecos(
-              cliente.getEnderecos().stream()
-                      .map(this::enderecoParaDTO)
-                      .collect(Collectors.toList())
+        cliente.getEnderecos().stream()
+          .map(this::enderecoParaDTO)
+          .collect(Collectors.toList())
       );
     } else {
       dto.setEnderecos(new ArrayList<>());

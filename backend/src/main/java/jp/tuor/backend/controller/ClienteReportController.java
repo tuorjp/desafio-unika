@@ -45,9 +45,9 @@ public class ClienteReportController {
     headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + filename);
 
     return ResponseEntity
-            .ok()
-            .headers(headers)
-            .contentType(MediaType.APPLICATION_PDF)
-            .body(new InputStreamResource(bais));
+      .ok()
+      .headers(headers)
+      .contentType(MediaType.APPLICATION_PDF)
+      .body(new InputStreamResource(bais));
   }
 }

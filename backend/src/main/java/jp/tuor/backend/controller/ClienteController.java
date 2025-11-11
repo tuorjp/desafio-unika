@@ -43,10 +43,10 @@ public class ClienteController {
     headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
 
     return ResponseEntity
-            .ok()
-            .headers(headers)
-            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-            .body(new InputStreamResource(bais));
+      .ok()
+      .headers(headers)
+      .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+      .body(new InputStreamResource(bais));
   }
 
   @GetMapping("list-all")
@@ -58,8 +58,8 @@ public class ClienteController {
 
   @GetMapping("/list-page")
   public Page<Cliente> listPaged(
-          @RequestParam(defaultValue = "0") int page,
-          @RequestParam(defaultValue = "10") int size
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size
   ) {
     Pageable pageable = PageRequest.of(page, size);
     return clienteService.listarClientesPaginado(pageable);
@@ -67,8 +67,8 @@ public class ClienteController {
 
   @GetMapping("search-by-state")
   public ResponseEntity<List<Cliente>> getClientesPorTipoEEstado(
-          @RequestParam("tipo") TipoPessoa tipoPessoa,
-          @RequestParam("estado") String estado
+    @RequestParam("tipo") TipoPessoa tipoPessoa,
+    @RequestParam("estado") String estado
   ) {
     List<Cliente> clientes = clienteService.buscarPorTipoEEstado(tipoPessoa, estado);
     return ResponseEntity.ok(clientes);
@@ -82,11 +82,11 @@ public class ClienteController {
 
   @GetMapping("/list-filter")
   public ResponseEntity<Page<Cliente>> listFiltered(
-          @RequestParam(value = "nome", required = false) String nome,
-          @RequestParam(value = "cpfCnpj", required = false) String cpfCnpj,
-          @RequestParam(value = "cidade", required = false) String cidade,
-          @RequestParam(value = "page", defaultValue = "0") int page,
-          @RequestParam(value = "size", defaultValue = "10") int size
+    @RequestParam(value = "nome", required = false) String nome,
+    @RequestParam(value = "cpfCnpj", required = false) String cpfCnpj,
+    @RequestParam(value = "cidade", required = false) String cidade,
+    @RequestParam(value = "page", defaultValue = "0") int page,
+    @RequestParam(value = "size", defaultValue = "10") int size
   ) {
     Pageable pageable = PageRequest.of(page, size);
     Page<Cliente> clientesPaginados = clienteService.buscarClientesFiltrados(nome, cpfCnpj, cidade, pageable);
@@ -98,8 +98,8 @@ public class ClienteController {
     this.clienteService.novoCliente(clienteDTO);
 
     return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(montarBody(HttpStatus.CREATED.value(), "Usuário criado com sucesso."));
+      .status(HttpStatus.CREATED)
+      .body(montarBody(HttpStatus.CREATED.value(), "Usuário criado com sucesso."));
   }
 
   @PostMapping("/import/excel")
@@ -127,13 +127,13 @@ public class ClienteController {
     this.clienteService.editarCliente(editClienteDTO);
 
     return ResponseEntity
-            .status(HttpStatus.OK)
-            .body(montarBody(HttpStatus.OK.value(), "Usuário editado com sucesso."));
+      .status(HttpStatus.OK)
+      .body(montarBody(HttpStatus.OK.value(), "Usuário editado com sucesso."));
   }
 
   @DeleteMapping("/delete-client")
   public ResponseEntity<Object> deleteCliente(
-          @RequestParam(value = "id") Long id
+    @RequestParam(value = "id") Long id
   ) {
     this.clienteService.deletarCliente(id);
 
