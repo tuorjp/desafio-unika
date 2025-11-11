@@ -274,7 +274,7 @@ export class AppComponent {
 
   getDataCliente(cliente: Cliente): string {
     const data = cliente.tipoPessoa === 'FISICA' ? cliente.dataNascimento : cliente.dataCriacao;
-    return this.datePipe.transform(data, 'dd/MM/yyyy') || 'N/A';
+    return this.datePipe.transform(data, 'dd/MM/yyyy', 'UTC') || 'N/A';
   }
 
   getEnderecoPrincipal(enderecos: EnderecoDto[] | undefined): string {

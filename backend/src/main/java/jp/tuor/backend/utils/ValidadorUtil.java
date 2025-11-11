@@ -11,8 +11,11 @@ import jp.tuor.backend.utils.annotations.Obrigatorio;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -95,14 +98,31 @@ public class ValidadorUtil {
           if (isObrigatorio) {
             if (valorCampo == null) {
               erros.add("O campo '" + nomeCampo + "' é obrigatório.");
-            } else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
+            }
+            else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
               erros.add("O campo '" + nomeCampo + "' não pode estar em branco.");
-            } else if (valorCampo instanceof String) {
+            }
+            else if (valorCampo instanceof String) {
               String valorStr = (String) valorCampo;
               if (nomeCampo.equals("cpf") && !this.isValidCPF(valorStr)) {
                 erros.add("'CPF " + valorStr + " é inválido.");
               } else if (nomeCampo.equals("cnpj") && !this.isValidCNPJ(valorStr)) {
                 erros.add("'CNPJ " + valorStr + " é inválido.");
+              }
+            }
+            else if (valorCampo instanceof java.util.Date) {
+              ZoneId fusoBr = ZoneId.of("America/Sao_Paulo");
+              LocalDate hoje = LocalDate.now(fusoBr);
+              LocalDate dataMinima = LocalDate.of(1900, 1, 1);
+
+              Date dataRecebida = (Date) valorCampo;
+              LocalDate dataValidar = dataRecebida.toInstant().atZone(fusoBr).toLocalDate();
+
+              if (dataValidar.isBefore(dataMinima)) {
+                erros.add(nomeCampo + ": Data inválida.");
+              }
+              if (dataValidar.isAfter(hoje)) {
+                 erros.add("O campo " + nomeCampo + " não pode ser uma data futura.");
               }
             }
           }

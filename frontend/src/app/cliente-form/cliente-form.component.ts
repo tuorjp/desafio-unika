@@ -189,8 +189,8 @@ export class ClienteFormComponent {
     this.clienteForm.reset();
     this.enderecosFormArray.clear();
 
-    const dataNascFormatada = this.datePipe.transform(cliente.dataNascimento, 'yyyy-MM-dd');
-    const dataCriacaoFormatada = this.datePipe.transform(cliente.dataCriacao, 'yyyy-MM-dd');
+    const dataNascFormatada = this.datePipe.transform(cliente.dataNascimento, 'yyyy-MM-dd', 'UTC');
+    const dataCriacaoFormatada = this.datePipe.transform(cliente.dataCriacao, 'yyyy-MM-dd', 'UTC');
 
     this.clienteForm.patchValue({
       ...cliente,

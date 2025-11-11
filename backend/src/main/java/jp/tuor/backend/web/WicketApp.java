@@ -1,14 +1,22 @@
 package jp.tuor.backend.web;
 
 import jp.tuor.backend.web.pages.home.HomePage;
+import org.apache.wicket.MetaDataKey;
 import org.apache.wicket.Page;
+import org.apache.wicket.Session;
 import org.apache.wicket.csp.CSPDirective;
 import org.apache.wicket.csp.CSPDirectiveSrcValue;
 import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.Request;
+import org.apache.wicket.request.Response;
 import org.springframework.stereotype.Component;
+
+import java.time.ZoneId;
 
 @Component
 public class WicketApp extends WebApplication {
+  public static final MetaDataKey<ZoneId> ZONE_ID_KEY = new MetaDataKey<>() {};
+
   @Override
   public Class<? extends Page> getHomePage() {
     return HomePage.class;
@@ -41,5 +49,14 @@ public class WicketApp extends WebApplication {
     // Permite 'data:' para fontes (se necessário)
     csp.add(CSPDirective.FONT_SRC, CSPDirectiveSrcValue.SELF);
     csp.add(CSPDirective.FONT_SRC, "data:");
+  }
+
+  @Override
+  public Session newSession(Request request, Response response) {
+    Session session = super.newSession(request, response);
+
+    session.setMetaData(ZONE_ID_KEY, ZoneId.of("America/Sao_Paulo"));
+
+    return session;
   }
 }
