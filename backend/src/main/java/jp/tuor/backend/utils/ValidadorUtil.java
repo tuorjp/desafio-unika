@@ -127,7 +127,7 @@ public class ValidadorUtil {
       for (int i = 0; i < enderecos.size(); i++) {
         EnderecoDTO endereco = enderecos.get(i);
         Class<?> classeEndereco = endereco.getClass();
-        String prefixo = "Endereço [" + (i + 1) + "]: ";
+        String prefixo = "Endereço: ";
 
         for (Field campoEndereco : classeEndereco.getDeclaredFields()) {
           if (campoEndereco.isAnnotationPresent(Obrigatorio.class)) {

@@ -298,7 +298,22 @@ public abstract class ClienteFormPanel extends Panel {
           fecharModal(target);
           onSave(target);
         } catch (Exception e) {
-          error("Erro ao salvar: " + e.getMessage());
+          String rawMessages = e.getMessage();
+
+          if(rawMessages != null && rawMessages.contains(";")) {
+            String[] erros = rawMessages.split(";");
+            error("Erro ao salvar: ");
+
+            for(String msg: erros) {
+              if(!msg.trim().isEmpty()) {
+                error(msg.trim());
+              }
+            }
+          } else {
+            String message = (rawMessages != null) ? rawMessages : "Erro ao salvar.";
+            error(message);
+          }
+
           target.add(feedbackPanel);
         }
       }
