@@ -36,12 +36,15 @@ export class ClienteFormComponent {
   modalInstance: Modal | null = null;
   isEditMode: boolean = false;
   isLoading: boolean = false;
+  today: string;
 
   @Output() onSaveSuccess = new EventEmitter<void>();
 
   constructor() {
     this.inicializarFormulario();
     this.setUpConditionalValidators();
+
+    this.today = new Date().toISOString().split('T')[0];
   }
 
   ngAfterViewInit(): void {

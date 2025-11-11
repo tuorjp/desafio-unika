@@ -79,7 +79,7 @@
             </div>
             <div class="col-md-2">
               <label for="dataNascimento" class="form-label">Data Nasc.</label>
-              <input type="date" id="dataNascimento" class="form-control" formControlName="dataNascimento"
+              <input min="1900-01-01" [max]="today" type="date" id="dataNascimento" class="form-control" formControlName="dataNascimento"
                      [class.is-invalid]="this.f['dataNascimento'].invalid && (f['dataNascimento'].dirty || f['dataNascimento'].touched)">
               <div *ngIf="f['dataNascimento'].invalid && (f['dataNascimento'].dirty || f['dataNascimento'].touched)"
                    class="invalid-feedback">
@@ -123,6 +123,17 @@
                 class="invalid-feedback">
                 <div *ngIf="f['inscricaoEstadual'].errors?.['required']">
                   A inscrição estadual é obrigatória.
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2">
+              <label for="dataCriacao" class="form-label">Data Criação</label>
+              <input min="1900-01-01" [max]="today" type="date" id="dataCriacao" class="form-control" formControlName="dataCriacao"
+                     [class.is-invalid]="this.f['dataCriacao'].invalid && (f['dataCriacao'].dirty || f['dataCriacao'].touched)">
+              <div *ngIf="f['dataCriacao'].invalid && (f['dataCriacao'].dirty || f['dataCriacao'].touched)"
+                   class="invalid-feedback">
+                <div *ngIf="f['dataCriacao'].errors?.['required']">
+                  A data de criação é obrigatória.
                 </div>
               </div>
             </div>
