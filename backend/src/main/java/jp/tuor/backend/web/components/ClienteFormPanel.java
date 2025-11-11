@@ -8,6 +8,8 @@ import jp.tuor.backend.model.enums.TipoPessoa;
 import jp.tuor.backend.model.mapper.ClienteMapper;
 import jp.tuor.backend.service.ClienteService;
 import jp.tuor.backend.utils.StringUtils;
+import jp.tuor.backend.web.WicketApp;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -26,12 +28,17 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.validation.validator.DateValidator;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 public abstract class ClienteFormPanel extends Panel {
   @SpringBean
@@ -85,11 +92,30 @@ public abstract class ClienteFormPanel extends Panel {
       @Override
       protected void onUpdate(AjaxRequestTarget target) {
         target.add(containerPF, containerPJ);
+        String initMasksScript = String.format(
+          "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
+            "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
+            "});",
+          modal.getMarkupId() //atualiza os campos e aplica as máscaras dinâmicas
+        );
+        target.appendJavaScript(initMasksScript);
       }
     });
     form.add(tipoPessoaField);
     form.add(new EmailTextField("email"));
     form.add(new CheckBox("ativo"));
+
+    //configuração de datas
+    ZoneId fusoBr = Session.get().getMetaData(WicketApp.ZONE_ID_KEY);
+    if(fusoBr == null) {
+      fusoBr = ZoneId.of("America/Sao_Paulo");
+    }
+
+    LocalDate dataMinima = LocalDate.of(1900, 1, 1);
+    LocalDate dataMaxima = LocalDate.now(fusoBr);
+
+    Date minDate = Date.from(dataMinima.atStartOfDay(fusoBr).toInstant());
+    Date maxDate = Date.from(dataMaxima.atStartOfDay(fusoBr).toInstant());
 
     //PF
     containerPF = new WebMarkupContainer("containerPF") {
@@ -111,6 +137,7 @@ public abstract class ClienteFormPanel extends Panel {
     containerPF.add(new TextField<>("nome"));
     containerPF.add(new TextField<>("rg"));
     DateTextField dataNascimentoField = new DateTextField("dataNascimento", "dd/MM/yyyy");
+    dataNascimentoField.add(DateValidator.range(minDate, maxDate));
     containerPF.add(dataNascimentoField);
     form.add(containerPF);
 
@@ -134,6 +161,7 @@ public abstract class ClienteFormPanel extends Panel {
     containerPJ.add(new TextField<>("razaoSocial"));
     containerPJ.add(new TextField<>("inscricaoEstadual"));
     DateTextField dataCriacaoField = new DateTextField("dataCriacao", "dd/MM/yyyy");
+    dataCriacaoField.add(DateValidator.range(minDate, maxDate));
     containerPJ.add(dataCriacaoField);
     form.add(containerPJ);
 
@@ -155,6 +183,13 @@ public abstract class ClienteFormPanel extends Panel {
 
         final TextField<String> logradouroField = new TextField<>("logradouro");
         logradouroField.setOutputMarkupId(true);
+        logradouroField.add(new AttributeAppender("readonly", new LoadableDetachableModel<Object>() {
+          @Override
+          protected String load() {
+            String val = logradouroField.getModelObject();
+            return (val != null && !val.isEmpty()) ? "readonly" : null;
+          }
+        }));
         item.add(logradouroField);
 
         final TextField<String> numeroField = new TextField<>("numero");
@@ -167,14 +202,35 @@ public abstract class ClienteFormPanel extends Panel {
 
         final TextField<String> bairroField = new TextField<>("bairro");
         bairroField.setOutputMarkupId(true);
+        bairroField.add(new AttributeAppender("readonly", new LoadableDetachableModel<String>() {
+          @Override
+          protected String load() {
+            String val = bairroField.getModelObject();
+            return (val != null && !val.isEmpty()) ? "readonly" : null;
+          }
+        }));
         item.add(bairroField);
 
         final TextField<String> cidadeField = new TextField<>("cidade");
         cidadeField.setOutputMarkupId(true);
+        cidadeField.add(new AttributeAppender("readonly", new LoadableDetachableModel<String>() {
+          @Override
+          protected String load() {
+            String val = cidadeField.getModelObject();
+            return (val != null && !val.isEmpty()) ? "readonly" : null;
+          }
+        }));
         item.add(cidadeField);
 
         final TextField<String> estadoField = new TextField<>("estado");
         estadoField.setOutputMarkupId(true);
+        estadoField.add(new AttributeAppender("readonly", new LoadableDetachableModel<String>() {
+          @Override
+          protected String load() {
+            String val = estadoField.getModelObject();
+            return (val != null && !val.isEmpty()) ? "readonly" : null;
+          }
+        }));
         item.add(estadoField);
 
         item.add(new CheckBox("enderecoPrincipal"));
@@ -213,8 +269,17 @@ public abstract class ClienteFormPanel extends Panel {
               item.getModelObject().setCidade(response.getLocalidade());
               item.getModelObject().setEstado(response.getUf());
               item.getModelObject().setComplemento(response.getComplemento());
+              item.getModelObject().setCep(cepField.getInput());
 
               target.add(enderecosContainer);
+
+              String initMasksScript = String.format(
+                "document.querySelectorAll('#%s [data-mask]').forEach(el => {" +
+                  "  if (!el.imask) { new IMask(el, { mask: el.dataset.mask, lazy: false }); }" +
+                  "});",
+                modal.getMarkupId() // Pega o ID do modal inteiro
+              );
+              target.appendJavaScript(initMasksScript);
 
               //target.appendJavaScript("document.getElementById('" + numeroField.getMarkupId() + "').focus();");
 
@@ -247,8 +312,6 @@ public abstract class ClienteFormPanel extends Panel {
 
         item.add(removeLink);
       }
-
-      ;
     };
 
     enderecosView.setReuseItems(false);
