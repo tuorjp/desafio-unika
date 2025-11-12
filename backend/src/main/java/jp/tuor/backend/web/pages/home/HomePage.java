@@ -64,6 +64,7 @@ public class HomePage extends BasePage {
   private IModel<String> nomeFilterModel;
   private IModel<String> cidadeFilterModel;
   private IModel<String> cpfCnpjFilterModel;
+  private TextField<String> cpfCnpjFilterField;
 
   //componentes dos modais
   private ClienteFormPanel clienteFormModal;
@@ -112,7 +113,9 @@ public class HomePage extends BasePage {
 
     filterForm.add(new TextField<>("nomeFilter", nomeFilterModel));
     filterForm.add(new TextField<>("cidadeFilter", cidadeFilterModel));
-    filterForm.add(new TextField<>("cpfCnpjFilter", cpfCnpjFilterModel));
+    cpfCnpjFilterField = new TextField<>("cpfCnpjFilter", cpfCnpjFilterModel);
+    cpfCnpjFilterField.setOutputMarkupId(true);
+    filterForm.add(cpfCnpjFilterField);
 
     //botão de busca
     filterForm.add(new AjaxButton("searchButton") {
@@ -319,11 +322,26 @@ public class HomePage extends BasePage {
   @Override
   public void renderHead(IHeaderResponse response) {
     super.renderHead(response);
+
     response.render(CssHeaderItem.forReference(new PackageResourceReference(HomePage.class, "HomePage.css")));
+
     String modalId = confirmDeleteModal.getMarkupId();
     response.render(OnDomReadyHeaderItem.forScript(
       "new bootstrap.Modal(document.getElementById('" + modalId + "'));"
     ));
+
+    String filterFieldId = cpfCnpjFilterField.getMarkupId();
+    String maskScript = String.format(
+      "new IMask(document.getElementById('%s'), {" +
+        "  mask: [" +
+        "    { mask: '000.000.000-00' }," +  //CPF
+        "    { mask: '00.000.000/0000-00' }" + //CNPJ
+        "  ]" +
+        "});",
+      filterFieldId
+    );
+
+    response.render(OnDomReadyHeaderItem.forScript(maskScript));
   }
 
   //--------------------------------------------------------------------------------------------------------

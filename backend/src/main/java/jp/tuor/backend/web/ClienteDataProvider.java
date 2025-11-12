@@ -36,6 +36,10 @@ public class ClienteDataProvider extends SortableDataProvider<Cliente, String> {
     String cpfCnpj = cpfCnpjFilterModel.getObject();
     String cidade = cidadeFilterModel.getObject();
 
+    if (cpfCnpj != null) {
+      cpfCnpj = cpfCnpj.replaceAll("[^\\d]", "");
+    }
+
     if (
       lastPageCache != null &&
         Objects.equals(nome, cachedNome) &&
