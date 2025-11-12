@@ -159,8 +159,10 @@ public abstract class ClienteFormPanel extends Panel {
     containerPF.add(new TextField<>("cpf"));
     containerPF.add(new TextField<>("nome"));
     containerPF.add(new TextField<>("rg"));
-    DateTextField dataNascimentoField = new DateTextField("dataNascimento", "dd/MM/yyyy");
-    dataNascimentoField.add(DateValidator.range(minDate, maxDate));
+    DateTextField dataNascimentoField = new DateTextField("dataNascimento", "yyyy-MM-dd");
+    //dataNascimentoField.add(DateValidator.range(minDate, maxDate));
+    dataNascimentoField.add(new AttributeAppender("min", dataMinima.toString()));
+    dataNascimentoField.add(new AttributeAppender("max", dataMaxima.toString()));
     containerPF.add(dataNascimentoField);
     form.add(containerPF);
 
@@ -183,8 +185,10 @@ public abstract class ClienteFormPanel extends Panel {
     containerPJ.add(new TextField<>("cnpj"));
     containerPJ.add(new TextField<>("razaoSocial"));
     containerPJ.add(new TextField<>("inscricaoEstadual"));
-    DateTextField dataCriacaoField = new DateTextField("dataCriacao", "dd/MM/yyyy");
-    dataCriacaoField.add(DateValidator.range(minDate, maxDate));
+    DateTextField dataCriacaoField = new DateTextField("dataCriacao", "yyyy-MM-dd");
+    //dataCriacaoField.add(DateValidator.range(minDate, maxDate));
+    dataCriacaoField.add(new AttributeAppender("min", dataMinima.toString()));
+    dataCriacaoField.add(new AttributeAppender("max", dataMaxima.toString()));
     containerPJ.add(dataCriacaoField);
     form.add(containerPJ);
   }
