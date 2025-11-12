@@ -2,14 +2,17 @@
   <h2>Clientes</h2>
 </header>
 
+<div class="container-fluid my-2" *ngIf="importErrors.length > 0">
+  <div class="alert alert-danger">
+    <strong>Erro ao importar arquivo</strong>
+    <ul class="mb-0">
+      <li *ngFor="let err of importErrors">{{err}}</li>
+    </ul>
+  </div>
+</div>
+
 <div class="actions-filter-container">
   <div class="actions-container">
-    <div>
-      <button type="button" class="btn btn-primary" (click)="modalNovo()">
-        Novo
-        <i class="bi bi-plus-lg"></i>
-      </button>
-    </div>
     <div>
       <button type="button" class="btn btn-success" (click)="importarClientes()">
         Importar .xlsx
@@ -33,6 +36,12 @@
       <button type="button" class="btn btn-danger" (click)="exportarClientesPDF()">
         Exportar PDF
         <i class="bi bi-filetype-pdf"></i>
+      </button>
+    </div>
+    <div>
+      <button type="button" class="btn btn-primary" (click)="modalNovo()">
+        Novo
+        <i class="bi bi-plus-lg"></i>
       </button>
     </div>
   </div>

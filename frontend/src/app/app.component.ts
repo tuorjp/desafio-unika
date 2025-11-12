@@ -39,6 +39,7 @@ export class AppComponent {
   totalPaginas: number = 0;
   totalElementos: number = 0;
   isLoading: boolean = false;
+  importErrors: String[] = [];
 
   //modal de deleção
   deleteModalInstance: Modal | null = null;
@@ -208,12 +209,19 @@ export class AppComponent {
 
     this.clienteService.importarExcel(file).subscribe({
       next: (response) => {
-        this.notification.showSuccess('Arquivo importado com sucesso');
-        this.carregarClientesFiltrados();
+        console.log("RES", response);
+          this.notification.showSuccess('Arquivo importado com sucesso');
+          this.carregarClientesFiltrados();
+          this.importErrors = [];
       },
       error: (err) => {
+        console.log("ERRO", err);
         this.isLoading = false;
-        this.notification.onApiError(err);
+        this.notification.showError("Ocorreu um erro ao importar arquivo.");
+
+        if (err?.error && err?.error?.erros && err?.error?.erros?.length > 0) {
+          this.importErrors = err?.error?.erros;
+        }
       },
       complete: () => {
         this.isLoading = false;
