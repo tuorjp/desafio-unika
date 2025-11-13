@@ -4,7 +4,9 @@ import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.Endereco;
 import jp.tuor.backend.model.dto.ClienteDTO;
 import jp.tuor.backend.model.dto.EnderecoDTO;
+import jp.tuor.backend.model.enums.TipoOperacao;
 import jp.tuor.backend.model.enums.TipoPessoa;
+import jp.tuor.backend.model.mapper.ClienteMapper;
 import jp.tuor.backend.repository.ClienteRepository;
 import jp.tuor.backend.service.exceptions.CPFCNPJDuplicadoException;
 import jp.tuor.backend.service.exceptions.CampoInvalidoException;
@@ -34,6 +36,15 @@ public class ClienteServiceTest {
 
   @Mock
   private ValidadorUtil validadorUtil;
+
+  @Mock
+  private ClienteMapper clienteMapper;
+
+  @Mock
+  private ClienteExcelExportService clienteExcelExportService;
+
+  @Mock
+  private ClienteExcelImportService excelImportService;
 
   @InjectMocks
   private ClienteService clienteService;
@@ -82,6 +93,10 @@ public class ClienteServiceTest {
     //simula o repositório, não deve achar nada ao pesquisar por CPF
     Mockito.when(clienteRepository.findByCpf(clienteDTO_PF.getCpf())).thenReturn(Optional.empty());
 
+    // Simula o mapper, já que ele é chamado antes do save
+    Mockito.doNothing().when(clienteMapper)
+      .preencheClienteObjComClienteDTO(Mockito.any(Cliente.class), Mockito.eq(clienteDTO_PF), Mockito.eq(TipoOperacao.CRIACAO));
+
     //simula o repositório, quando salvar retorna o objeto Cliente
     Mockito.when(clienteRepository.save(Mockito.any(Cliente.class))).thenReturn(new Cliente());
 
@@ -92,6 +107,10 @@ public class ClienteServiceTest {
 
     //verifica se o repositório foi chamado para checar duplicidade
     Mockito.verify(clienteRepository, Mockito.times(1)).findByCpf(clienteDTO_PF.getCpf());
+
+    //verifica se o mapper foi chamado
+    Mockito.verify(clienteMapper, Mockito.times(1))
+      .preencheClienteObjComClienteDTO(Mockito.any(Cliente.class), Mockito.eq(clienteDTO_PF), Mockito.eq(TipoOperacao.CRIACAO));
 
     //verifica se o repositório foi chamado para salvar
     Mockito.verify(clienteRepository, Mockito.times(1)).save(Mockito.any(Cliente.class));
@@ -111,6 +130,7 @@ public class ClienteServiceTest {
 
     //garante que o método save não é chamado se a validação falhou
     Mockito.verify(clienteRepository, Mockito.never()).save(Mockito.any());
+    Mockito.verify(clienteMapper, Mockito.never()).preencheClienteObjComClienteDTO(Mockito.any(), Mockito.any(), Mockito.any());
   }
 
   @Test
@@ -128,6 +148,7 @@ public class ClienteServiceTest {
     });
 
     Mockito.verify(clienteRepository, Mockito.never()).save(Mockito.any());
+    Mockito.verify(clienteMapper, Mockito.never()).preencheClienteObjComClienteDTO(Mockito.any(), Mockito.any(), Mockito.any());
   }
 
   //testes para editarCliente
@@ -146,6 +167,12 @@ public class ClienteServiceTest {
     //repositório acha o cliente original para editar
     Mockito.when(clienteRepository.findById(clienteDTO_PF.getId())).thenReturn(Optional.of(cliente_PF));
 
+    // Simula os mappers que são chamados na edição
+    Mockito.doNothing().when(clienteMapper).limpaCamposNaoUsados(Mockito.any(Cliente.class), Mockito.eq(clienteDTO_PF));
+    Mockito.doNothing().when(clienteMapper)
+      .preencheClienteObjComClienteDTO(Mockito.any(Cliente.class), Mockito.eq(clienteDTO_PF), Mockito.eq(TipoOperacao.EDICAO));
+
+
     //capturador para verificar o objeto que foi salvo
     ArgumentCaptor<Cliente> clienteCaptor = ArgumentCaptor.forClass(Cliente.class);
 
@@ -159,10 +186,9 @@ public class ClienteServiceTest {
     //pega o cliente que foi passado para o método save
     Cliente clienteSalvo = clienteCaptor.getValue();
 
-    //verifica se os dados foram atualizados
-    Assertions.assertEquals("Nome Alterado", clienteSalvo.getNome());
-    Assertions.assertEquals(1, clienteSalvo.getEnderecos().size());
-    Assertions.assertEquals("Rua Teste", clienteSalvo.getEnderecos().get(0).getLogradouro());
+    Mockito.verify(clienteMapper, Mockito.times(1)).limpaCamposNaoUsados(cliente_PF, clienteDTO_PF);
+    Mockito.verify(clienteMapper, Mockito.times(1))
+      .preencheClienteObjComClienteDTO(cliente_PF, clienteDTO_PF, TipoOperacao.EDICAO);
   }
 
   @Test
@@ -185,6 +211,7 @@ public class ClienteServiceTest {
     });
 
     Mockito.verify(clienteRepository, Mockito.never()).save(Mockito.any());
+    Mockito.verify(clienteMapper, Mockito.never()).limpaCamposNaoUsados(Mockito.any(), Mockito.any());
   }
 
   @Test
@@ -207,6 +234,11 @@ public class ClienteServiceTest {
     Mockito.when(clienteRepository.findByCpf(Mockito.any())).thenReturn(Optional.empty());
     Mockito.when(clienteRepository.findById(1L)).thenReturn(Optional.of(cliente_PF));
 
+    // Simula os mappers
+    Mockito.doNothing().when(clienteMapper).limpaCamposNaoUsados(Mockito.any(Cliente.class), Mockito.any(ClienteDTO.class));
+    Mockito.doNothing().when(clienteMapper)
+      .preencheClienteObjComClienteDTO(Mockito.any(Cliente.class), Mockito.any(ClienteDTO.class), Mockito.eq(TipoOperacao.EDICAO));
+
     ArgumentCaptor<Cliente> clienteCaptor = ArgumentCaptor.forClass(Cliente.class);
 
     //Act
@@ -214,10 +246,7 @@ public class ClienteServiceTest {
 
     //Assert
     Mockito.verify(clienteRepository).save(clienteCaptor.capture());
-    Cliente clienteSalvo = clienteCaptor.getValue();
-
-    //verifica se o endereço antigo (ID 10) foi removido
-    Assertions.assertTrue(clienteSalvo.getEnderecos().isEmpty());
+    Mockito.verify(clienteMapper, Mockito.times(1)).limpaCamposNaoUsados(cliente_PF, clienteDTO_PF);
   }
 
   //testes para buscaClientePorId

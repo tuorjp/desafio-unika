@@ -41,10 +41,16 @@ public class WicketApp extends WebApplication {
     csp.add(CSPDirective.SCRIPT_SRC, CSPDirectiveSrcValue.UNSAFE_EVAL);
 
     //permite 'data:' para imagens
-    csp.add(CSPDirective.IMG_SRC, CSPDirectiveSrcValue.SELF);
+    /*csp.add(CSPDirective.IMG_SRC, CSPDirectiveSrcValue.SELF);
     csp.add(CSPDirective.IMG_SRC, "data:");
     csp.add(CSPDirective.IMG_SRC, "http://www.w3.org/2000/svg");
-    csp.add(CSPDirective.IMG_SRC, "http://www.w3.org/1999/xlink");
+    csp.add(CSPDirective.IMG_SRC, "http://www.w3.org/1999/xlink");*/
+    csp.add(CSPDirective.IMG_SRC,
+      CSPDirectiveSrcValue.SELF.toString(),
+      "data:",
+      "http://www.w3.org/2000/svg",
+      "http://www.w3.org/1999/xlink"
+    );
 
     // Permite 'data:' para fontes (se necessário)
     csp.add(CSPDirective.FONT_SRC, CSPDirectiveSrcValue.SELF);
