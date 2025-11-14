@@ -32,7 +32,7 @@ export class AppComponent {
   listaClientes: Cliente[] = [];
   filtros: ClienteFiltros = {nome: '', cpfCnpj: '', cidade: ''};
   paginaAtual: number = 0;
-  tamanhoPagina: number = 10;
+  tamanhoPagina: number = 5;
   totalPaginas: number = 0;
   totalElementos: number = 0;
   isLoading: boolean = false;
