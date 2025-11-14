@@ -97,17 +97,17 @@ public class ValidadorUtil {
           //se for obrigatório neste contexto, valida o valor
           if (isObrigatorio) {
             if (valorCampo == null) {
-              erros.add("O campo '" + nomeCampo + "' é obrigatório.");
+              erros.add("O campo '" + nomeCampo + "' é obrigatório");
             }
             else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
-              erros.add("O campo '" + nomeCampo + "' não pode estar em branco.");
+              erros.add("O campo '" + nomeCampo + "' não pode estar em branco");
             }
             else if (valorCampo instanceof String) {
               String valorStr = (String) valorCampo;
               if (nomeCampo.equals("cpf") && !this.isValidCPF(valorStr)) {
-                erros.add("'CPF " + valorStr + " é inválido.");
+                erros.add("'CPF " + valorStr + " é inválido");
               } else if (nomeCampo.equals("cnpj") && !this.isValidCNPJ(valorStr)) {
-                erros.add("'CNPJ " + valorStr + " é inválido.");
+                erros.add("'CNPJ " + valorStr + " é inválido");
               }
             }
             else if (valorCampo instanceof java.util.Date) {
@@ -119,10 +119,10 @@ public class ValidadorUtil {
               LocalDate dataValidar = dataRecebida.toInstant().atZone(fusoBr).toLocalDate();
 
               if (dataValidar.isBefore(dataMinima)) {
-                erros.add(nomeCampo + ": Data inválida.");
+                erros.add(nomeCampo + ": Data inválida");
               }
               if (dataValidar.isAfter(hoje)) {
-                 erros.add("O campo " + nomeCampo + " não pode ser uma data futura.");
+                 erros.add("O campo " + nomeCampo + " não pode ser uma data futura");
               }
             }
           }
@@ -139,7 +139,7 @@ public class ValidadorUtil {
       long countEnderecoPrincipal = enderecos.stream().filter(EnderecoDTO::isEnderecoPrincipal).count();
 
       if (countEnderecoPrincipal == 0) {
-        erros.add("É obrigatório ao menos um endereço principal.");
+        erros.add("É obrigatório ao menos um endereço principal");
       } else if (countEnderecoPrincipal > 1) {
         erros.add("Apenas um endereço pode ser marcado como principal");
       }
@@ -163,10 +163,10 @@ public class ValidadorUtil {
               Object valorCampo = campoEndereco.get(endereco);
 
               if (valorCampo == null) {
-                erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' é obrigatório.");
+                erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' é obrigatório");
               }
               else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
-                erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' não pode estar em branco.");
+                erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' não pode estar em branco");
               }
               else if(nomeCampo.equals("numero")) {
                 String valorString = ((String) valorCampo).trim();
@@ -174,7 +174,7 @@ public class ValidadorUtil {
                 boolean isNumero = valorString.matches("\\d+");
 
                 if(!isNumero && !isSemNumero) {
-                  erros.add(prefixo + "O campo número deve ser um número válido ou s/n." );
+                  erros.add(prefixo + "O campo número deve ser um número válido ou s/n" );
                 }
               }
               else if (nomeCampo.equals("cep")) {
@@ -183,7 +183,7 @@ public class ValidadorUtil {
                 String cepLimpo = cepValor.replaceAll("[^\\d]", "");
 
                 if (cepLimpo.length() != 8) {
-                  erros.add(prefixo + "O campo 'cep' é inválido (deve conter 8 dígitos).");
+                  erros.add(prefixo + "O campo 'cep' é inválido (deve conter 8 dígitos)");
                 }
               }
             } catch (IllegalAccessException e) {

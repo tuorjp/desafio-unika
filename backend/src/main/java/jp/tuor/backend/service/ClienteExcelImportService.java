@@ -52,6 +52,7 @@ public class ClienteExcelImportService {
     try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
       Sheet sheet = workbook.getSheetAt(0);
 
+      //percorre linha por linha, ignorando cabeçalho
       for (int i = 1; i <= sheet.getLastRowNum(); i++) {
         Row row = sheet.getRow(i);
         if (row == null) continue;
@@ -62,6 +63,7 @@ public class ClienteExcelImportService {
           ClienteDTO dto = new ClienteDTO();
           String tipoPessoaStr = getValorCelula(row.getCell(0), dataFormatter).toUpperCase();
 
+          //preenche DTO com dados de cada linha da planilha
           if (tipoPessoaStr.equals("FISICA")) {
             dto.setTipoPessoa(TipoPessoa.FISICA);
             dto.setCpf(getValorCelula(row.getCell(1), dataFormatter));
