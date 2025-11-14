@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {ToastrService} from "ngx-toastr";
 
-type ToastOptions = Partial<import('ngx-toastr').ToastrConfig>;
+type ToastOptions = Partial<import('ngx-toastr').IndividualConfig>;
 
 @Injectable({
   providedIn: 'root'

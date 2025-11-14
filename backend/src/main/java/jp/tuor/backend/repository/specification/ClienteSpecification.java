@@ -3,6 +3,7 @@ package jp.tuor.backend.repository.specification;
 import jakarta.persistence.criteria.*;
 import jp.tuor.backend.model.Cliente;
 import jp.tuor.backend.model.Endereco;
+import jp.tuor.backend.utils.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 public class ClienteSpecification {
@@ -17,16 +18,20 @@ public class ClienteSpecification {
       }
 
       if (cpfCnpj != null && !cpfCnpj.isEmpty()) {
-        Predicate filtroCpf = cb.equal(root.get("cpf"), cpfCnpj);
-        Predicate filtroCnpj = cb.equal(root.get("cnpj"), cpfCnpj);
+        String cleanCpfCnpj = StringUtils.removerMascaraDigito(cpfCnpj);
+
+        Predicate filtroCpf = cb.like(root.get("cpf"), "%" + cleanCpfCnpj + "%");
+        Predicate filtroCnpj = cb.like(root.get("cnpj"), "%" + cleanCpfCnpj + "%");
         predicate = cb.and(predicate, cb.or(filtroCpf, filtroCnpj));
       }
 
       if (cidade != null && !cidade.isEmpty()) {
         Join<Cliente, Endereco> joinEnderecos = root.join("enderecos", JoinType.LEFT);
-        Predicate filtroCidade = cb.equal(joinEnderecos.get("cidade"), cidade);
+        Predicate filtroCidade = cb.like(joinEnderecos.get("cidade"), "%" + cidade + "%");
         predicate = cb.and(predicate, filtroCidade);
-        query.distinct(true);
+        if (query != null) {
+          query.distinct(true);
+        }
       }
 
       return predicate;
