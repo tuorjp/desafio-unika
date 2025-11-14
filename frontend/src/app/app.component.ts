@@ -135,8 +135,6 @@ export class AppComponent {
       filtrosParaApi.cpfCnpj = filtrosParaApi.cpfCnpj.replace(/\D/g, '');
     }
 
-    console.log(filtrosParaApi);
-
     this.clienteService.listarFiltrado(filtrosParaApi, this.paginaAtual, this.tamanhoPagina)
       .subscribe({
         next: (pagina) => {
@@ -205,14 +203,12 @@ export class AppComponent {
     this.notification.showInfo('Iniciando importação...');
 
     this.clienteService.importarExcel(file).subscribe({
-      next: (response) => {
-        console.log("RES", response);
+      next: (_response) => {
           this.notification.showSuccess('Arquivo importado com sucesso');
           this.carregarClientesFiltrados();
           this.importErrors = [];
       },
       error: (err) => {
-        console.log("ERRO", err);
         this.isLoading = false;
         this.notification.showError("Ocorreu um erro ao importar arquivo.");
 
