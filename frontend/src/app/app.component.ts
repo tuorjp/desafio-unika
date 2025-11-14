@@ -3,14 +3,11 @@ import {CommonModule, DatePipe} from "@angular/common";
 import {ClienteService} from "./services/cliente.service";
 import {ClienteFiltros} from "./models/cliente-filtros.model";
 import {Modal, Tooltip} from 'bootstrap';
-import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {Cliente} from "./models/cliente.model";
 import {EnderecoDto} from "./dto/endereco.dto";
-import {ClienteDTO} from "./dto/cliente.dto";
 import {NotificationService} from "./shared/notification/notification.service";
 import {NgxMaskDirective} from "ngx-mask";
-import {snOuNumberValidator} from "./shared/validators/custom-validators";
-import {HttpClient} from "@angular/common/http";
 import {ClienteFormComponent} from "./cliente-form/cliente-form.component";
 
 @Component({

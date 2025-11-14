@@ -1,4 +1,3 @@
-import {Endereco} from "./endereco.model";
 import {TipoPessoa} from "../enum/tipo-pessoa.enum";
 import {EnderecoDto} from "../dto/endereco.dto";
 
