@@ -15,9 +15,9 @@ export class NotificationService {
 
   public showError(message: string, title: string = 'Ocorreu um erro.') {
     const options: ToastOptions = {
-      timeOut: 15000,
+      timeOut: 4000,
       closeButton: true,
-      tapToDismiss: false,
+      tapToDismiss: true,
       toastClass: 'ngx-toastr wide-toast'
     }
 

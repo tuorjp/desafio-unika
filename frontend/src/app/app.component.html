@@ -2,7 +2,7 @@
   <h2>Clientes</h2>
 </header>
 
-<div class="container-fluid my-2" *ngIf="importErrors.length > 0">
+<div class="container-fluid my-2" *ngIf="importErrors.length > 0" (click)="importErrors = []" style="cursor: pointer">
   <div class="alert alert-danger">
     <strong>Erro ao importar arquivo</strong>
     <ul class="mb-0">
