@@ -13,6 +13,7 @@ import jp.tuor.backend.web.pages.BasePage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.head.CssHeaderItem;
@@ -25,7 +26,6 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.link.ResourceLink;
-import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -149,7 +149,10 @@ public class HomePage extends BasePage {
     tableContainer.add(dataView);
 
     //paginação
-    tableContainer.add(new PagingNavigator("pagingNavigator", dataView));
+    //tableContainer.add(new PagingNavigator("pagingNavigator", dataView));
+    var ajaxPN = new AjaxPagingNavigator("pagingNavigator", dataView);
+    ajaxPN.setOutputMarkupId(true);
+    tableContainer.add(ajaxPN);
 
     //label de total
     IModel<String> totalMsgModel = new LoadableDetachableModel<String>() {
@@ -310,7 +313,8 @@ public class HomePage extends BasePage {
       }
 
       @Override
-      public void onCancel(AjaxRequestTarget target) {}
+      public void onCancel(AjaxRequestTarget target) {
+      }
     };
     add(clienteFormModal);
   }
@@ -381,7 +385,7 @@ public class HomePage extends BasePage {
       }
     };
 
-    dataView.setItemsPerPage(10);
+    dataView.setItemsPerPage(5);
     return dataView;
   }
 
