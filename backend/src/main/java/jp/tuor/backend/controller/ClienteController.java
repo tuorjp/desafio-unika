@@ -102,7 +102,7 @@ public class ClienteController {
       .body(montarBody(HttpStatus.CREATED.value(), "Usuário criado com sucesso."));
   }
 
-  @PostMapping("/import/excel")
+  @PostMapping(value = "/import/excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<?> importarClientesExcel(@RequestParam("file") MultipartFile file) {
     if (file.isEmpty()) {
       throw new CampoInvalidoException("Por favor envie um arquivo .xlsx");
