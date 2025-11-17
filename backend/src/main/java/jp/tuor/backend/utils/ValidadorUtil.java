@@ -144,8 +144,7 @@ public class ValidadorUtil {
         erros.add("Apenas um endereço pode ser marcado como principal");
       }
 
-      for (int i = 0; i < enderecos.size(); i++) {
-        EnderecoDTO endereco = enderecos.get(i);
+      for (EnderecoDTO endereco : enderecos) {
         Class<?> classeEndereco = endereco.getClass();
         String prefixo = "Endereço: ";
 
@@ -164,20 +163,17 @@ public class ValidadorUtil {
 
               if (valorCampo == null) {
                 erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' é obrigatório");
-              }
-              else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
+              } else if (valorCampo instanceof String && ((String) valorCampo).trim().isEmpty()) {
                 erros.add(prefixo + "O campo '" + campoEndereco.getName() + "' não pode estar em branco");
-              }
-              else if(nomeCampo.equals("numero")) {
+              } else if (nomeCampo.equals("numero")) {
                 String valorString = ((String) valorCampo).trim();
                 boolean isSemNumero = valorString.equalsIgnoreCase("s/n");
                 boolean isNumero = valorString.matches("\\d+");
 
-                if(!isNumero && !isSemNumero) {
-                  erros.add(prefixo + "O campo número deve ser um número válido ou s/n" );
+                if (!isNumero && !isSemNumero) {
+                  erros.add(prefixo + "O campo número deve ser um número válido ou s/n");
                 }
-              }
-              else if (nomeCampo.equals("cep")) {
+              } else if (nomeCampo.equals("cep")) {
                 String cepValor = ((String) valorCampo).trim();
 
                 String cepLimpo = cepValor.replaceAll("[^\\d]", "");
