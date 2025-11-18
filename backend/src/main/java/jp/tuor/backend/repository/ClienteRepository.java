@@ -47,8 +47,8 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long>, JpaSpec
   //SQL puro
   @Query(
     value = "SELECT e.cidade AS cidade, COUNT(DISTINCT c.id) AS totalClientes " +
-      "FROM clientes c " +
-      "JOIN enderecos e ON c.id = e.cliente_id " +
+      "FROM cliente c " +
+      "JOIN endereco e ON c.id = e.cliente_id " +
       "GROUP BY e.cidade " +
       "ORDER BY totalClientes DESC",
     nativeQuery = true
