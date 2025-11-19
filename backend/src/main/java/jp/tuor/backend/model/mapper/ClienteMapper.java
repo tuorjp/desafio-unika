@@ -19,14 +19,14 @@ public class ClienteMapper {
   public void preencheClienteObjComClienteDTO(Cliente cliente, ClienteDTO clienteDTO, TipoOperacao tipoOperacao) {
     cliente.setTipoPessoa(clienteDTO.getTipoPessoa());
     if (clienteDTO.getTipoPessoa().equals(TipoPessoa.FISICA)) {
-      cliente.setCpf(clienteDTO.getCpf());
-      cliente.setNome(clienteDTO.getNome());
-      cliente.setRg(clienteDTO.getRg());
+      cliente.setCpf(clienteDTO.getCpf().trim());
+      cliente.setNome(clienteDTO.getNome().trim());
+      cliente.setRg(clienteDTO.getRg().trim());
       cliente.setDataNascimento(clienteDTO.getDataNascimento());
     } else {
-      cliente.setCnpj(clienteDTO.getCnpj());
-      cliente.setRazaoSocial(clienteDTO.getRazaoSocial());
-      cliente.setInscricaoEstadual(clienteDTO.getInscricaoEstadual());
+      cliente.setCnpj(clienteDTO.getCnpj().trim());
+      cliente.setRazaoSocial(clienteDTO.getRazaoSocial().trim());
+      cliente.setInscricaoEstadual(clienteDTO.getInscricaoEstadual().trim());
       cliente.setDataCriacao(clienteDTO.getDataCriacao());
     }
 
@@ -36,7 +36,7 @@ public class ClienteMapper {
       cliente.setAtivo(clienteDTO.isAtivo());
     }
 
-    cliente.setEmail(clienteDTO.getEmail());
+    cliente.setEmail(clienteDTO.getEmail().trim());
     montarEnderecosDoCliente(cliente, clienteDTO.getEnderecos());
   }
 
@@ -92,14 +92,14 @@ public class ClienteMapper {
   }
 
   public void preencherEnderecoComDTO(Endereco endereco, EnderecoDTO dto) {
-    endereco.setLogradouro(dto.getLogradouro());
-    endereco.setNumero(dto.getNumero());
-    endereco.setCep(dto.getCep());
-    endereco.setBairro(dto.getBairro());
-    endereco.setCidade(dto.getCidade());
-    endereco.setEstado(dto.getEstado());
+    endereco.setLogradouro(dto.getLogradouro().trim());
+    endereco.setNumero(dto.getNumero().trim());
+    endereco.setCep(dto.getCep().trim());
+    endereco.setBairro(dto.getBairro().trim());
+    endereco.setCidade(dto.getCidade().trim());
+    endereco.setEstado(dto.getEstado().trim());
     endereco.setEnderecoPrincipal(dto.isEnderecoPrincipal());
-    endereco.setComplemento(dto.getComplemento());
+    endereco.setComplemento(dto.getComplemento().trim());
   }
 
   public ClienteDTO clienteParaDTO(Cliente cliente) {
