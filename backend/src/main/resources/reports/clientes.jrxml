@@ -1,51 +1,61 @@
 <!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
-<jasperReport name="Blank_A4" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20"
-              rightMargin="20" topMargin="20" bottomMargin="20" uuid="b2db06be-d2f6-4876-abb8-79ae26be1da7">
-    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
-    <parameter name="SUBREPORT_PATH" class="java.lang.String"/>
-    <query language="sql"><![CDATA[]]></query>
-    <field name="tipoPessoa" class="jp.tuor.backend.model.enums.TipoPessoa"/>
-    <field name="cpf" class="java.lang.String"/>
-    <field name="cnpj" class="java.lang.String"/>
-    <field name="nome" class="java.lang.String"/>
-    <field name="razaoSocial" class="java.lang.String"/>
-    <field name="email" class="java.lang.String"/>
-    <field name="enderecos" class="java.util.List"/>
-    <background splitType="Stretch"/>
-    <title height="79" splitType="Stretch">
-        <element kind="staticText" uuid="98c4e0dd-a910-4e4b-82ac-29c2f1170a31" x="180" y="24" width="200" height="46"
-                 fontSize="16.0" bold="true" hTextAlign="Center">
-            <text><![CDATA[Relatório geral de Clientes]]></text>
-        </element>
-    </title>
-    <pageHeader height="35" splitType="Stretch"/>
-    <columnHeader height="61" splitType="Stretch"/>
-    <detail>
-        <band height="350" splitType="Stretch">
-            <element kind="textField" uuid="c703b3d6-2118-4767-a8c9-4c78a0581b0d" x="0" y="0" width="180" height="110"
-                     fontSize="12.0" hTextAlign="Center">
-                <expression>
-                    <![CDATA[$F{tipoPessoa}.toString().equals("FISICA") ? "Nome: " + $F{nome} : "Razão: " + $F{razaoSocial}]]></expression>
-            </element>
-            <element kind="textField" uuid="c7a504fb-b442-49f5-8abf-5df4582a3c55" x="180" y="0" width="180" height="110"
-                     fontSize="12.0" hTextAlign="Center">
-                <expression>
-                    <![CDATA[$F{tipoPessoa}.toString().equals("FISICA") ? "CPF: " + $F{cpf} : "CNPJ: " + $F{cnpj}]]></expression>
-            </element>
-            <element kind="textField" uuid="83d1262b-c1be-46bc-87cd-ae9e87d2fedd" x="360" y="0" width="180" height="110"
-                     fontSize="12.0" hTextAlign="Center">
-                <expression><![CDATA["Email: " + $F{email}]]></expression>
-            </element>
-            <element kind="subreport" uuid="c0530ee3-be94-473c-bc49-0a6183d5ce1e" x="0" y="110" width="545"
-                     height="230">
-                <dataSourceExpression>
-                    <![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{enderecos})]]></dataSourceExpression>
-                <expression><![CDATA[$P{SUBREPORT_PATH} + "endereco.jasper"]]></expression>
-            </element>
-            <property name="com.jaspersoft.studio.unit.height" value="px"/>
-        </band>
-    </detail>
-    <columnFooter height="45" splitType="Stretch"/>
-    <pageFooter height="54" splitType="Stretch"/>
-    <summary height="42" splitType="Stretch"/>
+<jasperReport name="Blank_A4" language="java" columnCount="1" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="10" bottomMargin="0" uuid="b2db06be-d2f6-4876-abb8-79ae26be1da7">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="SUBREPORT_PATH" class="java.lang.String"/>
+	<query language="sql"><![CDATA[]]></query>
+	<field name="tipoPessoa" class="jp.tuor.backend.model.enums.TipoPessoa"/>
+	<field name="cpf" class="java.lang.String"/>
+	<field name="cnpj" class="java.lang.String"/>
+	<field name="nome" class="java.lang.String"/>
+	<field name="razaoSocial" class="java.lang.String"/>
+	<field name="email" class="java.lang.String"/>
+	<field name="enderecos" class="java.util.List"/>
+	<background splitType="Stretch"/>
+	<title height="79" splitType="Stretch">
+		<element kind="staticText" uuid="98c4e0dd-a910-4e4b-82ac-29c2f1170a31" x="0" y="0" width="550" height="78" fontSize="25.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Clientes desafio Unika Sistemas]]></text>
+		</element>
+	</title>
+	<detail>
+		<band height="210" splitType="Stretch">
+			<element kind="textField" uuid="c703b3d6-2118-4767-a8c9-4c78a0581b0d" x="0" y="0" width="170" height="110" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[
+                    $F{tipoPessoa}.toString().equals("FISICA") ? "Nome: " + $F{nome} : "Razão: " + $F{razaoSocial}]]></expression>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="c7a504fb-b442-49f5-8abf-5df4582a3c55" x="170" y="0" width="190" height="110" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{tipoPessoa}.toString().equals("FISICA") ? 
+    // SE FOR PESSOA FÍSICA (CPF)
+    ($F{cpf} != null && $F{cpf}.length() == 11 ? 
+        "CPF: " + ($F{cpf}.substring(0, 3) + "." + $F{cpf}.substring(3, 6) + "." + $F{cpf}.substring(6, 9) + "-" + $F{cpf}.substring(9, 11)) : 
+        "CPF: " + $F{cpf}
+    )
+    :
+    // SE NÃO FOR PESSOA FÍSICA (CNPJ)
+    ($F{cnpj} != null && $F{cnpj}.length() == 14 ? 
+        "CNPJ: " + ($F{cnpj}.substring(0, 2) + "." + $F{cnpj}.substring(2, 5) + "." + $F{cnpj}.substring(5, 8) + "/" + $F{cnpj}.substring(8, 12) + "-" + $F{cnpj}.substring(12, 14)) :
+        "CNPJ: " + $F{cnpj}
+    )]]></expression>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="83d1262b-c1be-46bc-87cd-ae9e87d2fedd" x="360" y="0" width="190" height="110" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA["Email: " + $F{email}]]></expression>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+				</box>
+			</element>
+			<element kind="subreport" uuid="c0530ee3-be94-473c-bc49-0a6183d5ce1e" x="0" y="110" width="550" height="89">
+				<dataSourceExpression><![CDATA[
+                    new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{enderecos})]]></dataSourceExpression>
+				<expression><![CDATA[$P{SUBREPORT_PATH} + "endereco.jasper"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
 </jasperReport>
