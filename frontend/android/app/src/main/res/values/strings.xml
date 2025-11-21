@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">clientes</string>
+    <string name="title_activity_main">clientes</string>
+    <string name="package_name">jp.tuor.frontend</string>
+    <string name="custom_url_scheme">jp.tuor.frontend</string>
+</resources>

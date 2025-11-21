@@ -7,14 +7,24 @@ import {ClienteDTO} from "../dto/cliente.dto";
 import {ClienteFiltros} from "../models/cliente-filtros.model";
 import {ResumoClientesPorCidade} from "../models/resumo-clientes-por-cidade.model";
 import {TipoPessoa} from "../enum/tipo-pessoa.enum";
+import {environment} from "../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClienteService {
-  private readonly apiUrl = 'http://localhost:8080/api/cliente'
+
+  private readonly apiUrl = this.getApiUrl();
 
   constructor(private http: HttpClient) {
+  }
+
+  private getApiUrl(): string {
+    if (window.location.host.includes('10.0.2.2')) {
+      return environment.apiUrlMobile;
+    }
+
+    return environment.apiUrlWeb;
   }
 
   listarTodos(): Observable<Cliente[]> {
