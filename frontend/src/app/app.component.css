@@ -18,6 +18,8 @@
 .actions-container {
   display: flex;
   flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 0.2rem;
 }
 
@@ -25,6 +27,11 @@
   display: flex;
   flex-direction: row;
   gap: 0.2rem;
+}
+
+.filter-btns {
+  display: flex;
+  justify-content: center;
 }
 
 .filter-btn {
@@ -76,4 +83,31 @@
 .botao-paginacao:disabled {
   pointer-events: auto;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .cards-view .card-cliente {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+
+  .cards-view .card-body {
+    padding-bottom: 0;
+  }
+
+  .cards-view .list-group-item {
+    border: none;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .cards-view .list-group-item:last-child {
+    border-bottom: none;
+  }
+
+  .cards-view .card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid rgba(0,0,0,.125);
+    padding: 0.75rem 1.25rem;
+  }
 }

@@ -45,7 +45,7 @@
       </button>
     </div>
   </div>
-  <div class="filters-container">
+  <div class="filters-container d-flex flex-wrap">
     <div>
       <input
         type="text"
@@ -74,91 +74,149 @@
         (keyup.enter)="filtrar()"
       >
     </div>
-    <div class="filter-btn" (click)="filtrar()">
-      <i
-        class="bi bi-funnel-fill text-primary h2"
-        data-bs-toggle="tooltip"
-        title="Filtrar"
-      >
-      </i>
-    </div>
-    <div class="filter-btn" (click)="limparFiltro()">
-      <i
-        class="bi bi-x-circle text-danger h2"
-        data-bs-toggle="tooltip"
-        title="Limpar Filtros"
-      >
-      </i>
+    <div class="filter-btns">
+      <div class="filter-btn" (click)="filtrar()">
+        <i
+          class="bi bi-funnel-fill text-primary h2"
+          data-bs-toggle="tooltip"
+          title="Filtrar"
+        >
+        </i>
+      </div>
+      <div class="filter-btn" (click)="limparFiltro()">
+        <i
+          class="bi bi-x-circle text-danger h2"
+          data-bs-toggle="tooltip"
+          title="Limpar Filtros"
+        >
+        </i>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="table-container card">
-  <table class="table">
-    <thead>
-    <tr>
-      <th scope="col">ID</th>
-      <th scope="col">Nome</th>
-      <th scope="col">Email</th>
-      <th scope="col">CPF/CNPJ</th>
-      <th scope="col">Data de nascimento/criação</th>
-      <th scope="col">Endereço Principal</th>
-      <th scope="col">Status</th>
-      <th scope="col">Ações</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr *ngFor="let cliente of listaClientes">
-      <th scope="row">{{ cliente.id }}</th>
-      <td>{{ getNomeCliente(cliente) }}</td>
-      <td>{{ cliente.email ? cliente.email : 'N/A' }}</td>
-      <td>{{ getDocumentoCliente(cliente) }}</td>
-      <td>{{ getDataCliente(cliente) }}</td>
-      <td>{{ getEnderecoPrincipal(cliente.enderecos) }}</td>
-      <td>
+  <!--View para dispositivos desktop-->
+  <div class="table-responsive d-none d-md-block">
+    <table class="table">
+      <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Nome</th>
+        <th scope="col">Email</th>
+        <th scope="col">CPF/CNPJ</th>
+        <th scope="col">Data de nascimento/criação</th>
+        <th scope="col">Endereço Principal</th>
+        <th scope="col">Status</th>
+        <th scope="col">Ações</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let cliente of listaClientes">
+        <th scope="row">{{ cliente.id }}</th>
+        <td>{{ getNomeCliente(cliente) }}</td>
+        <td>{{ cliente.email ? cliente.email : 'N/A' }}</td>
+        <td>{{ getDocumentoCliente(cliente) }}</td>
+        <td>{{ getDataCliente(cliente) }}</td>
+        <td>{{ getEnderecoPrincipal(cliente.enderecos) }}</td>
+        <td>
           <span class="badge" [ngClass]="cliente.ativo ? 'text-bg-success' : 'text-bg-danger'">
             {{ cliente.ativo ? 'Ativo' : 'Inativo' }}
           </span>
-      </td>
-      <td class="table-actions">
-        <i
-          class="bi bi-trash-fill text-danger"
-          data-bs-toggle="tooltip"
-          title="Excluir"
-          (click)="abrirModalDelete(cliente.id, getNomeCliente(cliente))"
-        ></i>
-        <i
-          class="bi bi-pencil-fill text-primary"
-          data-bs-toggle="tooltip"
-          title="Editar"
-          (click)="modalEditar(cliente)"
-        ></i>
-        <i
-          class="bi bi-download"
-          data-bs-toggle="tooltip"
-          title="Baixar Relatório"
-          (click)="exportarClientesPDF(cliente.id)"
-        ></i>
-      </td>
-    </tr>
+        </td>
+        <td class="table-actions">
+          <i
+            class="bi bi-trash-fill text-danger"
+            data-bs-toggle="tooltip"
+            title="Excluir"
+            (click)="abrirModalDelete(cliente.id, getNomeCliente(cliente))"
+          ></i>
+          <i
+            class="bi bi-pencil-fill text-primary"
+            data-bs-toggle="tooltip"
+            title="Editar"
+            (click)="modalEditar(cliente)"
+          ></i>
+          <i
+            class="bi bi-download"
+            data-bs-toggle="tooltip"
+            title="Baixar Relatório"
+            (click)="exportarClientesPDF(cliente.id)"
+          ></i>
+        </td>
+      </tr>
 
-    <!--loading-->
-    <tr *ngIf="isLoading">
-      <td colspan="7" class="text-center">
+      <!--loading-->
+      <tr *ngIf="isLoading">
+        <td colspan="7" class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Carregando</span>
+          </div>
+        </td>
+      </tr>
+      <!--resposta vazia-->
+      <tr *ngIf="!isLoading && listaClientes.length === 0">
+        <td colspan="7" class="text-center">Nenhum cliente encontrado</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!--View para dispositivos mobile-->
+  <div class="cards-view d-block d-md-none p-3">
+    <div class="row row-cols-1 g-3"> <div class="col" *ngFor="let cliente of listaClientes">
+      <div class="card card-cliente h-100"> <div class="card-body">
+        <h5 class="card-title text-primary">{{ getNomeCliente(cliente) }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">ID: {{ cliente.id }}</h6>
+        <ul class="list-group list-group-flush mt-3">
+          <li class="list-group-item"><strong>Email:</strong> {{ cliente.email ? cliente.email : 'N/A' }}</li>
+          <li class="list-group-item"><strong>CPF/CNPJ:</strong> {{ getDocumentoCliente(cliente) }}</li>
+          <li class="list-group-item"><strong>Nascimento/Criação:</strong> {{ getDataCliente(cliente) }}</li>
+          <li class="list-group-item"><strong>Endereço Principal:</strong> {{ getEnderecoPrincipal(cliente.enderecos) }}</li>
+          <li class="list-group-item">
+            <strong>Status:</strong>
+            <span class="badge" [ngClass]="cliente.ativo ? 'text-bg-success' : 'text-bg-danger'">
+                  {{ cliente.ativo ? 'Ativo' : 'Inativo' }}
+                </span>
+          </li>
+        </ul>
+      </div>
+        <div class="card-footer d-flex justify-content-around">
+          <i
+            class="bi bi-trash-fill text-danger h4 m-0"
+            data-bs-toggle="tooltip"
+            title="Excluir"
+            (click)="abrirModalDelete(cliente.id, getNomeCliente(cliente))"
+          ></i>
+          <i
+            class="bi bi-pencil-fill text-primary h4 m-0"
+            data-bs-toggle="tooltip"
+            title="Editar"
+            (click)="modalEditar(cliente)"
+          ></i>
+          <i
+            class="bi bi-download h4 m-0"
+            data-bs-toggle="tooltip"
+            title="Baixar Relatório"
+            (click)="exportarClientesPDF(cliente.id)"
+          ></i>
+        </div>
+      </div>
+    </div>
+
+      <div class="col-12 text-center py-4" *ngIf="isLoading">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Carregando</span>
         </div>
-      </td>
-    </tr>
-    <!--resposta vazia-->
-    <tr *ngIf="!isLoading && listaClientes.length === 0">
-      <td colspan="7" class="text-center">Nenhum cliente encontrado</td>
-    </tr>
-    </tbody>
-  </table>
+      </div>
+      <div class="col-12 text-center py-4" *ngIf="!isLoading && listaClientes.length === 0">
+        Nenhum cliente encontrado
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="pagination-container" *ngIf="!isLoading && totalPaginas > 0">
+<div class="pagination-container flex-sm-row" *ngIf="!isLoading && totalPaginas > 0">
   <span class="total-registros">
     Total de registros {{ totalElementos }}
   </span>
