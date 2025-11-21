@@ -99,7 +99,7 @@ public class ClienteMapper {
     endereco.setCidade(dto.getCidade().trim());
     endereco.setEstado(dto.getEstado().trim());
     endereco.setEnderecoPrincipal(dto.isEnderecoPrincipal());
-    endereco.setComplemento(dto.getComplemento().trim());
+    endereco.setComplemento(dto.getComplemento());
   }
 
   public ClienteDTO clienteParaDTO(Cliente cliente) {
