@@ -20,7 +20,7 @@ Para executar via terminal:
 
 Verifique se as dependências estão instaladas e se o banco de dados está configurado conforme o arquivo `application.properties`.
 
-## Projeto no Android (Desenvolvimento/Debug)
+## Como rodar o projeto no Android
 
 Para executar o frontend Angular como um aplicativo Android usando o **Capacitor**, é necessário configurar a comunicação de rede para contornar as restrições de segurança do emulador (CORS e HTTP Cleartext).
 
@@ -93,7 +93,7 @@ O tráfego Http deve ser permitido. Para isso, é preciso criar o arquivo: `andr
     ></activity>
 ```
 
-#### Rodando o projeto Android
+### Rodando o projeto Android
 
 Com as configurações prontas, basta abrir um terminal em `src/main/java/jp/tuor/frontend/` e os comandos abaixo:
 
